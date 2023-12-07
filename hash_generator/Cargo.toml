@@ -1,5 +1,5 @@
 [package]
-name = "file_checker"
+name = "hash_generator"
 version = "0.1.0"
 edition = "2021"
 
