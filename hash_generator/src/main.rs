@@ -41,7 +41,7 @@ fn main() {
     let file_path = file_path.trim();
 
     match calculate_sha256(file_path) {
-        Ok(hash) => println!("SHA-256 Hash: {}", hash),
+        Ok(hash) => println!("{}", hash),
         Err(err) => eprintln!("Error: {}", err),
     }
 }
