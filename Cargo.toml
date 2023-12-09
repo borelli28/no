@@ -2,4 +2,5 @@
 members = [
     "hash_generator",
     "hash_db",
+    "monitor"
 ]
