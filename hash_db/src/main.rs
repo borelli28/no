@@ -4,7 +4,7 @@ use hash_storage::HashStorage;
 
 fn main() {
     // Specify the path to the JSON file for storing the hash map
-    let json_file_path = "./data/hashes.json";
+    let json_file_path = "../data/hashes.json";
 
     // Create a new instance of HashStorage
     let mut storage = HashStorage::new(json_file_path).expect("Failed to create HashStorage");
