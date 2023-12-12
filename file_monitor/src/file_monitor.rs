@@ -1,5 +1,6 @@
-
 use std::time::{Duration, SystemTime};
+use std::fs;
+
 use hash_db::hash_storage::HashStorage;
 use hash_generator::calculate_sha256;
 
@@ -33,7 +34,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
                 // Check if the entry is a file
                 if file_path.is_file() {
                     // Calculate the SHA-256 hash for the file
-                    if let Ok(hash) = hash_db::hash_generator::calculate_sha256(&file_path) {
+                    if let Ok(hash) = hash_generator::calculate_sha256(&file_path) {
                         println!("File: {:?}, Hash: {}", file_path, hash);
 
                         // Update the hash map in HashStorage

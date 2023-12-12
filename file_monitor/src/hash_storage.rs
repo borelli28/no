@@ -2,9 +2,8 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, Write};
 use std::path::Path;
-use serde::{Deserialize, Serialize};
-use hash_generator::calculate_sha256;
 
+use hash_generator::calculate_sha256;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HashStorage {
@@ -38,33 +37,4 @@ impl HashStorage {
             }
             Err(err) => Err(err),
         }
-    }
-
-    pub fn get_hash(&self, file_path: &str) -> Option<&String> {
-        self.hashes.get(file_path)
-    }
-
-    // Load existing hashes from the JSON file
-    fn load_from_file(&mut self) -> io::Result<()> {
-        // Check if the JSON file exists
-        if Path::new(&self.json_file_path).exists() {
-            // Read the JSON data from the file
-            let json_data = fs::read_to_string(&self.json_file_path)?;
-            // Deserialize the JSON data into the hash map
-            self.hashes = serde_json::from_str(&json_data)?;
-        }
-        Ok(())
-    }
-
-    // Save the hash map to the JSON file
-    fn save_to_file(&self) -> io::Result<()> {
-        // Serialize the hash map to JSON format
-        let json_data = serde_json::to_string_pretty(&self.hashes)?;
-
-        // Create or open the JSON file
-        let mut file = File::create(&self.json_file_path)?;
-        file.write_all(json_data.as_bytes())?;
-
-        Ok(())
-    }
-}
+   
