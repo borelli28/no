@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "hash_generator",
     "hash_db",
-    "monitor"
+    "hash_generator",
+    "file_monitor"
 ]
 resolver = "2"
