@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{self, Read};
 use sha2::{Digest, Sha256};
 
-fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
+pub fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     // Open the file
     let mut file = File::open(file_path)?;
 

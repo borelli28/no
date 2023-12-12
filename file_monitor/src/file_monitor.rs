@@ -1,6 +1,8 @@
 use std::time::{Duration, SystemTime};
 use std::fs;
+
 use hash_db::hash_storage::HashStorage;
+use hash_generator::calculate_sha256;
 
 fn main() {
     // Specify the path to the JSON file for storing the hash map
@@ -21,7 +23,7 @@ fn main() {
 // Function to perform the actual monitoring logic
 fn monitor_file_system(storage: &mut HashStorage) {
     // Specify the directory to monitor
-    let directory_to_monitor = "/path/to/monitor";
+    let directory_to_monitor = "file/path";
 
     // Get the list of files in the directory
     if let Ok(entries) = fs::read_dir(directory_to_monitor) {
@@ -32,7 +34,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
                 // Check if the entry is a file
                 if file_path.is_file() {
                     // Calculate the SHA-256 hash for the file
-                    if let Ok(hash) = hash_db::hash_generator::calculate_sha256(&file_path) {
+                    if let Ok(hash) = hash_generator::calculate_sha256(&file_path) {
                         println!("File: {:?}, Hash: {}", file_path, hash);
 
                         // Update the hash map in HashStorage
