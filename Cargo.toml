@@ -4,3 +4,4 @@ members = [
     "hash_db",
     "monitor"
 ]
+resolver = "2"
