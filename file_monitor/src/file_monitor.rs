@@ -22,7 +22,7 @@ fn main() {
 // Function to perform the actual monitoring logic
 fn monitor_file_system(storage: &mut HashStorage) {
     // Specify the directory to monitor
-    let directory_to_monitor = "/Users/armando/portfolio-web-home.png";
+    let directory_to_monitor = "file/path";
 
     // Get the list of files in the directory
     if let Ok(entries) = fs::read_dir(directory_to_monitor) {
