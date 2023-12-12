@@ -1,0 +1,8 @@
+[package]
+name = "file_monitor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hash_db = { path = "../hash_db" }
+hash_generator = { path = "../hash_generator" }
