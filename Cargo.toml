@@ -1,7 +1,0 @@
-[workspace]
-members = [
-    "hash_db",
-    "hash_generator",
-    "file_monitor"
-]
-resolver = "2"
