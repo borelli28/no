@@ -87,18 +87,24 @@ impl HashStorage {
     }
 }
 
-// Function to perform monitoring logic
 fn monitor_file_system(storage: &mut HashStorage) {
-    let directory_to_monitor = "/Projects/macos-fi/README.md";
+    let directory_to_monitor = "/unix-fim/README.md";
     println!("Directory to monitor: {}", {directory_to_monitor});
+
+    // Get the list of files in the directory
     if let Ok(entries) = fs::read_dir(directory_to_monitor) {
+        // Iterate through each element in directory
         for entry in entries {
             if let Ok(entry) = entry {
                 let file_path = entry.path();
 
+                // Check if the entry is a file
                 if file_path.is_file() {
+                    // Calculate the SHA-256 hash for the file
                     if let Ok(hash) = calculate_sha256(&file_path.to_string_lossy()) {
                         println!("File: {:?}, Hash: {}", file_path, hash);
+
+                        // Update the hash map in HashStorage
                         storage
                             .add_hash(&file_path.to_string_lossy())
                             .expect("Failed to add hash");
