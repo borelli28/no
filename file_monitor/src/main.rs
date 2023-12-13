@@ -115,7 +115,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
                     }
                 }
             } else {
-                println!("entry not Ok.......");
+                println!("entry not Ok :(");
             }
         }
     }
