@@ -9,7 +9,6 @@ use sha2::{Digest, Sha256};
 // Function to calculate SHA-256 hash for a file
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     let mut file = File::open(file_path)?;
-
     let mut sha256 = Sha256::new();
     let mut buffer = [0; 1024];
 
@@ -27,14 +26,15 @@ fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     Ok(format!("{:x}", result))
 }
 
+// HashStorage struct and implementation
 #[derive(Debug, Serialize, Deserialize)]
-struct HashStorage {
-    hashes: HashMap<String, String>,
+pub struct HashStorage {
+    pub hashes: HashMap<String, String>,
     json_file_path: String,
 }
 
 impl HashStorage {
-    fn new(json_file_path: &str) -> io::Result<Self> {
+    pub fn new(json_file_path: &str) -> io::Result<Self> {
         let mut storage = HashStorage {
             hashes: HashMap::new(),
             json_file_path: json_file_path.to_string(),
@@ -44,7 +44,7 @@ impl HashStorage {
         Ok(storage)
     }
 
-    fn add_hash(&mut self, file_path: &str) -> io::Result<()> {
+    pub fn add_hash(&mut self, file_path: &str) -> io::Result<()> {
         match calculate_sha256(file_path) {
             Ok(hash) => {
                 self.hashes.insert(file_path.to_string(), hash);
@@ -55,7 +55,7 @@ impl HashStorage {
         }
     }
 
-    fn get_hash(&self, file_path: &str) -> Option<&String> {
+    pub fn get_hash(&self, file_path: &str) -> Option<&String> {
         self.hashes.get(file_path)
     }
 
@@ -69,9 +69,21 @@ impl HashStorage {
 
     fn save_to_file(&self) -> io::Result<()> {
         let json_data = serde_json::to_string_pretty(&self.hashes)?;
+
         let mut file = File::create(&self.json_file_path)?;
         file.write_all(json_data.as_bytes())?;
+
         Ok(())
+    }
+
+    pub fn start_monitoring<F>(&mut self, interval: Duration, monitor_function: F)
+    where
+        F: Fn(&mut HashStorage),
+    {
+        loop {
+            monitor_function(self);
+            std::thread::sleep(interval);
+        }
     }
 }
 
@@ -87,7 +99,9 @@ fn monitor_file_system(storage: &mut HashStorage) {
                 if file_path.is_file() {
                     if let Ok(hash) = calculate_sha256(&file_path.to_string_lossy()) {
                         println!("File: {:?}, Hash: {}", file_path, hash);
-                        storage.add_hash(&file_path.to_string_lossy()).expect("Failed to add hash");
+                        storage
+                            .add_hash(&file_path.to_string_lossy())
+                            .expect("Failed to add hash");
                     } else {
                         println!("Failed to calculate hash for {:?}", file_path);
                     }
@@ -98,16 +112,11 @@ fn monitor_file_system(storage: &mut HashStorage) {
 }
 
 fn main() {
-    // Specify the path to the JSON file for storing the hash map
     let json_file_path = "../data/hashes.json";
-
-    // Create a new instance of HashStorage
     let mut storage = HashStorage::new(json_file_path).expect("Failed to create HashStorage");
 
-    // Start monitoring the file system at a specified interval (e.g., every 5 seconds)
     storage.start_monitoring(Duration::from_secs(5), monitor_file_system);
 
-    // Keep the monitoring thread alive
     loop {
         std::thread::sleep(Duration::from_secs(1));
     }
