@@ -122,7 +122,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
 }
 
 fn main() {
-    let json_file_path = "../data/hashes.json";
+    let json_file_path = "./data/hashes.json";
     let mut storage = HashStorage::new(json_file_path).expect("Failed to create HashStorage");
 
     storage.start_monitoring(Duration::from_secs(5), monitor_file_system);
