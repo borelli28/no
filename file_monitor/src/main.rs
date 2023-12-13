@@ -87,18 +87,26 @@ impl HashStorage {
     }
 }
 
-// Function to perform monitoring logic
 fn monitor_file_system(storage: &mut HashStorage) {
-    let directory_to_monitor = "file/path";
+    let directory_to_monitor = ".";
+    println!("Directory to monitor: {}", {directory_to_monitor});
 
+    // Get the list of files in the directory
     if let Ok(entries) = fs::read_dir(directory_to_monitor) {
+        // Iterate through each element in directory
         for entry in entries {
             if let Ok(entry) = entry {
+                println!("entry Ok :)");
                 let file_path = entry.path();
 
+                // Check if the entry is a file
                 if file_path.is_file() {
+                    println!("path is file......");
+                    // Calculate the SHA-256 hash for the file
                     if let Ok(hash) = calculate_sha256(&file_path.to_string_lossy()) {
                         println!("File: {:?}, Hash: {}", file_path, hash);
+
+                        // Update the hash map in HashStorage
                         storage
                             .add_hash(&file_path.to_string_lossy())
                             .expect("Failed to add hash");
@@ -106,13 +114,15 @@ fn monitor_file_system(storage: &mut HashStorage) {
                         println!("Failed to calculate hash for {:?}", file_path);
                     }
                 }
+            } else {
+                println!("entry not Ok :(");
             }
         }
     }
 }
 
 fn main() {
-    let json_file_path = "../data/hashes.json";
+    let json_file_path = "./data/hashes.json";
     let mut storage = HashStorage::new(json_file_path).expect("Failed to create HashStorage");
 
     storage.start_monitoring(Duration::from_secs(5), monitor_file_system);
