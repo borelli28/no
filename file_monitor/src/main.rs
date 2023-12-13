@@ -89,8 +89,8 @@ impl HashStorage {
 
 // Function to perform monitoring logic
 fn monitor_file_system(storage: &mut HashStorage) {
-    let directory_to_monitor = "file/path";
-
+    let directory_to_monitor = "/Projects/macos-fi/README.md";
+    println!("Directory to monitor: {}", {directory_to_monitor});
     if let Ok(entries) = fs::read_dir(directory_to_monitor) {
         for entry in entries {
             if let Ok(entry) = entry {
