@@ -112,7 +112,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
                             if hash != *stored_hash {
                                 println!("Alert: Hash mismatch for {:?}", file_path);
 
-                                // Log the inconsistency to "inconsistencies.json"
+                                // Log the inconsistency to "/data/inconsistencies.json"
                                 log_inconsistency(&file_path.to_string_lossy(), hash, stored_hash);
                             }
                         } else {
@@ -143,13 +143,24 @@ fn log_inconsistency(file_path: &str, calculated_hash: String, stored_hash: &Str
         "message": "Hash mismatch",
     });
 
-    // Open "inconsistencies.json" file for appending or create if it doesn't exist
-    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open("inconsistencies.json") {
+    let data_dir = Path::new("./data");
+    // Ensure the "/data" directory exists, creating it if necessary
+    if !data_dir.exists() {
+        fs::create_dir(data_dir).expect("Failed to create data directory");
+    }
+
+    // Open "/data/inconsistencies.json" file for appending or create if it doesn't exist
+    if let Ok(mut file) = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(data_dir.join("inconsistencies.json"))
+    {
         writeln!(file, "{}", inconsistency.to_string()).expect("Failed to write inconsistency to file");
     } else {
-        println!("Failed to open inconsistencies.json for writing");
+        println!("Failed to open /data/inconsistencies.json for writing");
     }
 }
+
 
 fn main() {
     let json_file_path = "./data/hashes.json";
