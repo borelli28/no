@@ -120,6 +120,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
                             }
                         } else {
                             println!("Alert: File not found in hashes.json for {:?}", file_path);
+                            storage.add_hash(&file_path.to_string_lossy()).expect("Failed to add hash");
                         }
                     } else {
                         println!("Failed to calculate hash for {:?}", file_path);
