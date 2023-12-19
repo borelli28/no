@@ -5,6 +5,7 @@ use std::path::Path;
 use std::time::{Duration, SystemTime};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::fs::OpenOptions;
 
 // Function to calculate SHA-256 hash for a file
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
@@ -110,6 +111,9 @@ fn monitor_file_system(storage: &mut HashStorage) {
                         if let Some(stored_hash) = storage.get_hash(&file_path.to_string_lossy()) {
                             if hash != *stored_hash {
                                 println!("Alert: Hash mismatch for {:?}", file_path);
+
+                                // Log the inconsistency to "inconsistencies.json"
+                                log_inconsistency(&file_path.to_string_lossy(), hash, stored_hash);
                             }
                         } else {
                             println!("Alert: File not found in hashes.json for {:?}", file_path);
@@ -130,6 +134,22 @@ fn monitor_file_system(storage: &mut HashStorage) {
     }
 }
 
+fn log_inconsistency(file_path: &str, calculated_hash: String, stored_hash: &String) {
+    let inconsistency = serde_json::json!({
+        "file_path": file_path,
+        "calculated_hash": calculated_hash,
+        "stored_hash": stored_hash,
+        "timestamp": SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs(),
+        "message": "Hash mismatch",
+    });
+
+    // Open "inconsistencies.json" file for appending or create if it doesn't exist
+    if let Ok(mut file) = OpenOptions::new().create(true).append(true).open("inconsistencies.json") {
+        writeln!(file, "{}", inconsistency.to_string()).expect("Failed to write inconsistency to file");
+    } else {
+        println!("Failed to open inconsistencies.json for writing");
+    }
+}
 
 fn main() {
     let json_file_path = "./data/hashes.json";
