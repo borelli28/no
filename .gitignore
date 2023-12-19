@@ -15,3 +15,5 @@ Cargo.lock
 
 # Where the hashes are stored
 data/
+
+test.txt
