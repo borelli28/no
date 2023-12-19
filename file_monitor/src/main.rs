@@ -114,15 +114,13 @@ fn monitor_file_system(storage: &mut HashStorage) {
 
                                 // Log the inconsistency to "/data/inconsistencies.json"
                                 log_inconsistency(&file_path.to_string_lossy(), hash, stored_hash);
+                            } else {
+                                // Update the hash map in HashStorage only if there is no inconsistency
+                                storage.add_hash(&file_path.to_string_lossy()).expect("Failed to add hash");
                             }
                         } else {
                             println!("Alert: File not found in hashes.json for {:?}", file_path);
                         }
-
-                        // Update the hash map in HashStorage
-                        storage
-                            .add_hash(&file_path.to_string_lossy())
-                            .expect("Failed to add hash");
                     } else {
                         println!("Failed to calculate hash for {:?}", file_path);
                     }
