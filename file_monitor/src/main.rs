@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::time::{Duration, SystemTime};
+use std::time::{Duration};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs::OpenOptions;
+use chrono::{DateTime, Utc};
 
 // Function to calculate SHA-256 hash for a file
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
@@ -138,8 +139,8 @@ fn log_alerts(file_path: &str, calculated_hash: String, stored_hash: &String) {
         "file_path": file_path,
         "calculated_hash": calculated_hash,
         "stored_hash": stored_hash,
+        "timestamp": Utc::now().to_rfc3339(),  // Use Utc::now() to get the current time in UTC
         "message": "Hash mismatch",
-        "timestamp": SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs(),
     });
 
     let data_dir = Path::new("./data");
