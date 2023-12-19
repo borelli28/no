@@ -89,11 +89,11 @@ impl HashStorage {
 
 fn monitor_file_system(storage: &mut HashStorage) {
     let directory_to_monitor = ".";
-    println!("Directory to monitor: {}", {directory_to_monitor});
+    println!("Directory to monitor: {}", directory_to_monitor);
 
     // Get the list of files in the directory
     if let Ok(entries) = fs::read_dir(directory_to_monitor) {
-        // Iterate through each element in directory
+        // Iterate through each element in the directory
         for entry in entries {
             if let Ok(entry) = entry {
                 println!("entry Ok :)");
@@ -105,6 +105,15 @@ fn monitor_file_system(storage: &mut HashStorage) {
                     // Calculate the SHA-256 hash for the file
                     if let Ok(hash) = calculate_sha256(&file_path.to_string_lossy()) {
                         println!("File: {:?}, Hash: {}", file_path, hash);
+
+                        // Check if the calculated hash matches the stored hash
+                        if let Some(stored_hash) = storage.get_hash(&file_path.to_string_lossy()) {
+                            if hash != *stored_hash {
+                                println!("Alert: Hash mismatch for {:?}", file_path);
+                            }
+                        } else {
+                            println!("Alert: File not found in hashes.json for {:?}", file_path);
+                        }
 
                         // Update the hash map in HashStorage
                         storage
@@ -120,6 +129,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
         }
     }
 }
+
 
 fn main() {
     let json_file_path = "./data/hashes.json";
