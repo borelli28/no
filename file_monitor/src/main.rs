@@ -78,15 +78,12 @@ impl HashStorage {
         Ok(())
     }
 
-    pub fn start_monitoring<F>(&mut self, interval: Duration, monitor_function: F)
+    pub fn start_monitoring<F>(&mut self, monitor_function: F)
     where
         F: Fn(&mut HashStorage),
     {
-        loop {
-            monitor_function(self);
-            std::thread::sleep(interval);
-        }
-    }
+        monitor_function(self);
+    }    
 }
 
 fn monitor_file_system(storage: &mut HashStorage) {
@@ -166,9 +163,5 @@ fn main() {
     let json_file_path = "./data/hashes.json";
     let mut storage = HashStorage::new(json_file_path).expect("Failed to create HashStorage");
 
-    storage.start_monitoring(Duration::from_secs(5), monitor_file_system);
-
-    loop {
-        std::thread::sleep(Duration::from_secs(1));
-    }
+    storage.start_monitoring(monitor_file_system);
 }
