@@ -113,7 +113,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
                                 println!("Alert: Hash mismatch for {:?}", file_path);
 
                                 // Log the inconsistency to "/data/inconsistencies.json"
-                                log_inconsistency(&file_path.to_string_lossy(), hash, stored_hash);
+                                log_alerts(&file_path.to_string_lossy(), hash, stored_hash);
                             } else {
                                 // Update the hash map in HashStorage only if there is no inconsistency
                                 storage.add_hash(&file_path.to_string_lossy()).expect("Failed to add hash");
@@ -132,13 +132,13 @@ fn monitor_file_system(storage: &mut HashStorage) {
     }
 }
 
-fn log_inconsistency(file_path: &str, calculated_hash: String, stored_hash: &String) {
+fn log_alerts(file_path: &str, calculated_hash: String, stored_hash: &String) {
     let inconsistency = serde_json::json!({
         "file_path": file_path,
         "calculated_hash": calculated_hash,
         "stored_hash": stored_hash,
-        "timestamp": SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs(),
         "message": "Hash mismatch",
+        "timestamp": SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs(),
     });
 
     let data_dir = Path::new("./data");
@@ -147,15 +147,15 @@ fn log_inconsistency(file_path: &str, calculated_hash: String, stored_hash: &Str
         fs::create_dir(data_dir).expect("Failed to create data directory");
     }
 
-    // Open "/data/inconsistencies.json" file for appending or create if it doesn't exist
+    // Open "/data/alerts.json" file for appending or create if it doesn't exist
     if let Ok(mut file) = OpenOptions::new()
         .create(true)
         .append(true)
-        .open(data_dir.join("inconsistencies.json"))
+        .open(data_dir.join("alerts.json"))
     {
-        writeln!(file, "{}", inconsistency.to_string()).expect("Failed to write inconsistency to file");
+        writeln!(file, "{}", inconsistency.to_string()).expect("Failed to write alerts to file");
     } else {
-        println!("Failed to open /data/inconsistencies.json for writing");
+        println!("Failed to open /data/alerts.json for writing");
     }
 }
 
