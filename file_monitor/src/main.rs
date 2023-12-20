@@ -158,7 +158,6 @@ fn log_alerts(file_path: &str, calculated_hash: String, stored_hash: &String) {
     }
 }
 
-
 fn main() {
     let json_file_path = "./data/hashes.json";
     let mut storage = HashStorage::new(json_file_path).expect("Failed to create HashStorage");
