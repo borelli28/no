@@ -2,11 +2,10 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::Path;
-use std::time::{Duration};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::fs::OpenOptions;
-use chrono::{DateTime, Utc};
+use chrono::{Utc};
 
 // Function to calculate SHA-256 hash for a file
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
