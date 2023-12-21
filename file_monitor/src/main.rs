@@ -82,7 +82,7 @@ impl HashStorage {
         F: Fn(&mut HashStorage),
     {
         monitor_function(self);
-    }    
+    }
 }
 
 fn monitor_file_system(storage: &mut HashStorage) {
@@ -155,6 +155,28 @@ fn log_alerts(file_path: &str, calculated_hash: String, stored_hash: &String) {
     } else {
         println!("Failed to open /data/alerts.json for writing");
     }
+}
+
+#[derive(Debug, Deserialize)]
+struct Directories {
+    directory_paths: Vec<String>,
+}
+
+fn unix_dirs(file_path: &str,) {
+    // Open the file
+    let file_path = "./data/unix-dirs.json";
+    let mut file = File::open(file_path).expect("Failed to open file");
+
+    // Read the contents of the file into a string
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .expect("Failed to read file contents");
+
+    // Parse the JSON string into the Directories struct
+    let directories: Directories = serde_json::from_str(&contents).expect("Failed to parse JSON");
+
+    // Access the directory paths vector
+    let directory_paths = directories.directory_paths;
 }
 
 fn main() {
