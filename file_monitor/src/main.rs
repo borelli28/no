@@ -95,11 +95,8 @@ fn monitor_file_system(storage: &mut HashStorage) {
     file.read_to_string(&mut contents)
         .expect("Failed to read file contents");
 
-    println!("Contents: {}", contents);
-
     // Get the list of files in the directory
     if let Ok(entries) = serde_json::from_str::<Vec<String>>(&contents) {
-        println!("Yoooo");
         // Iterate through each element in the directory
         for entry_path in entries {
             if let Ok(entry) = fs::read_dir(&entry_path) {
