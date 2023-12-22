@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fs::{self, File};
+use std::fs::{self, File, DirEntry};
 use std::io::{self, Read, Write};
 use std::path::Path;
 use serde::{Deserialize, Serialize};
@@ -86,47 +86,66 @@ impl HashStorage {
 }
 
 fn monitor_file_system(storage: &mut HashStorage) {
-    let directory_to_monitor = ".";
-    println!("Directory to monitor: {}", directory_to_monitor);
+    // Open the file
+    let file_path = "./data/unix-dirs.json";
+    let mut file = File::open(file_path).expect("Failed to open file");
+
+    // Read the contents of the file into a string
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)
+        .expect("Failed to read file contents");
+
+    println!("Contents: {}", contents);
 
     // Get the list of files in the directory
-    if let Ok(entries) = fs::read_dir(directory_to_monitor) {
+    if let Ok(entries) = serde_json::from_str::<Vec<String>>(&contents) {
+        println!("Yoooo");
         // Iterate through each element in the directory
-        for entry in entries {
-            if let Ok(entry) = entry {
+        for entry_path in entries {
+            if let Ok(entry) = fs::read_dir(&entry_path) {
                 println!("entry Ok :)");
-                let file_path = entry.path();
 
-                // Check if the entry is a file
-                if file_path.is_file() {
-                    println!("path is file......");
-                    // Calculate the SHA-256 hash for the file
-                    if let Ok(hash) = calculate_sha256(&file_path.to_string_lossy()) {
-                        println!("File: {:?}, Hash: {}", file_path, hash);
+                // Iterate through each entry in the directory
+                for entry_result in entry {
+                    if let Ok(entry) = entry_result {
+                        // Check if the entry is a file
+                        if entry.path().is_file() {
+                            println!("path is file......");
+                            // Calculate the SHA-256 hash for the file
+                            if let Ok(hash) = calculate_sha256(&entry.path().to_string_lossy()) {
+                                println!("File: {:?}, Hash: {}", entry.path(), hash);
 
-                        // Check if the calculated hash matches the stored hash
-                        if let Some(stored_hash) = storage.get_hash(&file_path.to_string_lossy()) {
-                            if hash != *stored_hash {
-                                println!("Alert: Hash mismatch for {:?}", file_path);
+                                // Check if the calculated hash matches the stored hash
+                                if let Some(stored_hash) = storage.get_hash(&entry.path().to_string_lossy()) {
+                                    if hash != *stored_hash {
+                                        println!("Alert: Hash mismatch for {:?}", entry.path());
 
-                                // Log the inconsistency to "/data/inconsistencies.json"
-                                log_alerts(&file_path.to_string_lossy(), hash, stored_hash);
+                                        // Log the inconsistency to "/data/inconsistencies.json"
+                                        log_alerts(&entry.path().to_string_lossy(), hash, stored_hash);
+                                    } else {
+                                        // Update the hash map in HashStorage only if there is no inconsistency
+                                        storage.add_hash(&entry.path().to_string_lossy()).expect("Failed to add hash");
+                                    }
+                                } else {
+                                    println!("Alert: File not found in hashes.json for {:?}", entry.path());
+                                    storage.add_hash(&entry.path().to_string_lossy()).expect("Failed to add hash");
+                                }
                             } else {
-                                // Update the hash map in HashStorage only if there is no inconsistency
-                                storage.add_hash(&file_path.to_string_lossy()).expect("Failed to add hash");
+                                println!("Failed to calculate hash for {:?}", entry.path());
                             }
                         } else {
-                            println!("Alert: File not found in hashes.json for {:?}", file_path);
-                            storage.add_hash(&file_path.to_string_lossy()).expect("Failed to add hash");
+                            println!("Path is not a file: {:?}", entry.path());
                         }
                     } else {
-                        println!("Failed to calculate hash for {:?}", file_path);
+                        println!("Failed to read directory entry: {:?}", entry_result);
                     }
                 }
             } else {
-                println!("entry not Ok :(");
+                println!("Failed to read directory: {}", entry_path);
             }
         }
+    } else {
+        println!("Failed to parse directory paths from contents");
     }
 }
 
@@ -135,7 +154,7 @@ fn log_alerts(file_path: &str, calculated_hash: String, stored_hash: &String) {
         "file_path": file_path,
         "calculated_hash": calculated_hash,
         "stored_hash": stored_hash,
-        "timestamp": Utc::now().to_rfc3339(),  // Use Utc::now() to get the current time in UTC
+        "timestamp": Utc::now().to_rfc3339(),
         "message": "Hash mismatch",
     });
 
@@ -155,28 +174,6 @@ fn log_alerts(file_path: &str, calculated_hash: String, stored_hash: &String) {
     } else {
         println!("Failed to open /data/alerts.json for writing");
     }
-}
-
-#[derive(Debug, Deserialize)]
-struct Directories {
-    directory_paths: Vec<String>,
-}
-
-fn unix_dirs(file_path: &str,) {
-    // Open the file
-    let file_path = "./data/unix-dirs.json";
-    let mut file = File::open(file_path).expect("Failed to open file");
-
-    // Read the contents of the file into a string
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)
-        .expect("Failed to read file contents");
-
-    // Parse the JSON string into the Directories struct
-    let directories: Directories = serde_json::from_str(&contents).expect("Failed to parse JSON");
-
-    // Access the directory paths vector
-    let directory_paths = directories.directory_paths;
 }
 
 fn main() {
