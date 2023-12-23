@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fs::{self, File, DirEntry};
+use std::fs::{self, File};
 use std::io::{self, Read, Write};
 use std::path::Path;
 use serde::{Deserialize, Serialize};
