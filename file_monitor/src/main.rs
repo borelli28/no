@@ -25,7 +25,7 @@ fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     Ok(format!("{:x}", result))
 }
 
-fn get_file_info(file_path: &str) -> Result<fs::Metadata, io::Error> {
+fn get_file_metadata(file_path: &str) -> Result<fs::Metadata, io::Error> {
     let metadata = metadata(file_path)?;
 
     // Print all available metadata
@@ -128,7 +128,7 @@ fn monitor_file_system(storage: &mut HashStorage) {
                                     println!("File: {:?}, Hash: {}", entry.path(), hash);
 
                                     // Prints all the file metadata
-                                    if let Err(err) = get_file_info(&entry.path().to_string_lossy()) {
+                                    if let Err(err) = get_file_metadata(&entry.path().to_string_lossy()) {
                                         eprintln!("Error: {}", err);
                                     }
 
