@@ -29,9 +29,7 @@ fn get_file_info(file_path: &str) -> Result<fs::Metadata, io::Error> {
     let metadata = metadata(file_path)?;
 
     // Print all available metadata
-    println!("File Type: {:?}", metadata.file_type());
     println!("Size: {} bytes", metadata.len());
-    println!("Permissions: {:?}", metadata.permissions());
 
     if let Ok(created) = metadata.created() {
         println!("Creation Time: {}", format_system_time(&created));
