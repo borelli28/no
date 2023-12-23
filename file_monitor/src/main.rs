@@ -27,6 +27,21 @@ fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     Ok(format!("{:x}", result))
 }
 
+fn get_file_info(file_path: &str) -> Result<fs::Metadata, io::Error> {
+    let metadata = fs::metadata(file_path)?;
+
+    // Print all available metadata
+    println!("File Path: {:?}", file_path);
+    println!("File Type: {:?}", metadata.file_type());
+    println!("Size: {:?}", metadata.len());
+    println!("Permissions: {:?}", metadata.permissions());
+    println!("Creation Time: {:?}", metadata.created());
+    println!("Last Access Time: {:?}", metadata.accessed());
+    println!("Last Modified Time: {:?}", metadata.modified());
+
+    Ok(metadata)
+}
+
 // HashStorage struct and implementation
 #[derive(Debug, Serialize, Deserialize)]
 pub struct HashStorage {
