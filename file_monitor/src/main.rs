@@ -9,7 +9,7 @@ use chrono::Utc;
 fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
     let file = File::open(file_path)?;
     let mut reader = BufReader::new(file);
-    let mut hasher = Sha256::new();
+    let mut hash = Sha256::new();
     let mut buffer = [0; 1024];
 
     loop {
@@ -17,10 +17,10 @@ fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
         if n == 0 {
             break;
         }
-        hasher.update(&buffer[..n]);
+        hash.update(&buffer[..n]);
     }
 
-    let result = hasher.finalize();
+    let result = hash.finalize();
     Ok(format!("{:x}", result))
 }
 
