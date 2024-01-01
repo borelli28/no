@@ -25,13 +25,13 @@ fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct HashStorage {
-    pub hashes: HashMap<String, String>,
+struct HashStorage {
+    hashes: HashMap<String, String>,
     json_file_path: String,
 }
 
 impl HashStorage {
-    pub fn new(json_file_path: &str) -> io::Result<Self> {
+    fn new(json_file_path: &str) -> io::Result<Self> {
         let storage = HashStorage {
             hashes: HashMap::new(),
             json_file_path: json_file_path.to_string(),
