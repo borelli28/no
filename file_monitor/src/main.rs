@@ -24,7 +24,7 @@ fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
     Ok(format!("{:x}", result))
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct HashStorage {
     pub hashes: HashMap<String, String>,
     json_file_path: String,
