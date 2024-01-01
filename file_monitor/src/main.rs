@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{self, BufReader, Read};
+use std::io::{self, BufReader, Read, Write};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use chrono::Utc;
@@ -38,6 +38,26 @@ impl HashStorage {
         };
 
         Ok(storage)
+    }
+
+    fn save_to_file(&self) -> io::Result<()> {
+        let json_data = serde_json::to_string_pretty(&self.hashes)?;
+
+        let mut file = File::create(&self.json_file_path)?;
+        file.write_all(json_data.as_bytes())?;
+
+        Ok(())
+    }
+
+    fn add_hash(&mut self, file_path: &str) -> io::Result<()> {
+        match calculate_sha256(file_path) {
+            Ok(hash) => {
+                self.hashes.insert(file_path.to_string(), hash);
+                self.save_to_file()?;
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
     }
 }
 
