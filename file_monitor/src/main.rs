@@ -94,10 +94,12 @@ fn cli_menu() {
             io::stdin().read_line(&mut file).expect("Failed to read line");
             let file: &str = file.trim();
 
-            let result = hash_file(&file);
-            println!("\n {} \n", result);
+            let hash = hash_file(&file);
+            println!("\n {} \n", hash);
+
         } else if input == "q" {
             break
+
         } else {
             println!("\n Invalid input \n")
         }
