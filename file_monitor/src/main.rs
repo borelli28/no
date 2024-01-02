@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
+use std::fs;
 use std::io::{self, BufReader, Read, Write};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -40,20 +41,10 @@ impl HashStorage {
         Ok(storage)
     }
 
-    fn save_to_file(&self) -> io::Result<()> {
-        let json_data = serde_json::to_string_pretty(&self.hashes)?;
-
-        let mut file = File::create(&self.file_path)?;
-        file.write_all(json_data.as_bytes())?;
-
-        Ok(())
-    }
-
     fn add_hash(&mut self, file_path: &str) -> io::Result<()> {
         match calculate_sha256(file_path) {
             Ok(hash) => {
                 self.hashes.insert(file_path.to_string(), hash);
-                self.save_to_file()?;
                 Ok(())
             }
             Err(err) => Err(err),
@@ -79,20 +70,43 @@ fn hash_file(file_path: &str) -> String {
 //     let directories_file = file_path;
 // }
 
+fn check_file_exists(file_path: &str) -> io::Result<()> {
+    if !fs::metadata(file_path).is_ok() {
+        fs::write(file_path, "")?;
+    }
+    Ok(())
+}
+
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file to monitoring list, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
         let input: String = input.trim().to_lowercase();
     
         if input == "g" {
-            let hash_this_file = "./test.txt";
-            let result = hash_file(hash_this_file);
-            println!("\n {} \n", result);
+            // ./test.txt
+            println!("\n Path to file: ");
+            let mut file = String::new();
+            io::stdin().read_line(&mut file).expect("Failed to read line");
+            let file: &str = file.trim();
+
+            let hash = hash_file(&file);
+            println!("\n {} \n", hash);
+
         } else if input == "q" {
             break
+
+        } else if input == "a" {
+            println!("\n Path to file: ");
+            let mut file = String::new();
+            io::stdin().read_line(&mut file).expect("Failed to read line");
+            let file: &str = file.trim();
+
+            let hash = hash_file(&file);
+            println!("\n {} \n", hash);
+
         } else {
             println!("\n Invalid input \n")
         }
@@ -100,8 +114,8 @@ fn cli_menu() {
 }
 
 fn main() {
-    let file_path = String::from("./data/hashes.json");
-    HashStorage::new(file_path).expect("Failed to create HashStorage");
+    let hashes_db = String::from("./data/hashes.json");
+    HashStorage::new(hashes_db).expect("Failed to create HashStorage");
 
     cli_menu();
 }
