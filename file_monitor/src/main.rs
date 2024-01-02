@@ -41,15 +41,6 @@ impl HashStorage {
         Ok(storage)
     }
 
-    fn save_to_file(&self) -> io::Result<()> {
-        let json_data = serde_json::to_string_pretty(&self.hashes)?;
-
-        let mut file = File::create(&self.file_path)?;
-        file.write_all(json_data.as_bytes())?;
-
-        Ok(())
-    }
-
     fn add_hash(&mut self, file_path: &str) -> io::Result<()> {
         match calculate_sha256(file_path) {
             Ok(hash) => {
@@ -89,7 +80,7 @@ fn check_file_exists(file_path: &str) -> io::Result<()> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file to monitoring list, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -107,6 +98,15 @@ fn cli_menu() {
 
         } else if input == "q" {
             break
+
+        } else if input == "a" {
+            println!("\n Path to file: ");
+            let mut file = String::new();
+            io::stdin().read_line(&mut file).expect("Failed to read line");
+            let file: &str = file.trim();
+
+            let hash = hash_file(&file);
+            println!("\n {} \n", hash);
 
         } else {
             println!("\n Invalid input \n")
