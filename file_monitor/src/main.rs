@@ -27,14 +27,14 @@ fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
 #[derive(Serialize, Deserialize)]
 struct HashStorage {
     hashes: HashMap<String, String>,
-    json_file_path: String,
+    file_path: String,
 }
 
 impl HashStorage {
-    fn new(json_file_path: &str) -> io::Result<Self> {
+    fn new(file_path: String) -> io::Result<Self> {
         let storage = HashStorage {
             hashes: HashMap::new(),
-            json_file_path: json_file_path.to_string(),
+            file_path: file_path,
         };
 
         Ok(storage)
@@ -43,7 +43,7 @@ impl HashStorage {
     fn save_to_file(&self) -> io::Result<()> {
         let json_data = serde_json::to_string_pretty(&self.hashes)?;
 
-        let mut file = File::create(&self.json_file_path)?;
+        let mut file = File::create(&self.file_path)?;
         file.write_all(json_data.as_bytes())?;
 
         Ok(())
@@ -61,7 +61,27 @@ impl HashStorage {
     }
 }
 
+fn hash_file(file_path: &str) {
+    let result = calculate_sha256(file_path);
+
+    match result {
+        Ok(hash) => {
+            println!("Hash: {}", hash);
+        }
+        Err(err) => {
+            eprintln!("Error: {:?}", err);
+        }
+    }
+}
+
+// fn monitor(file_path: &str) -> io::Result<()> {
+//     let directories_file = file_path;
+// }
+
 fn main() {
-    let json_file_path = "./data/hashes.json";
-    HashStorage::new(json_file_path).expect("Failed to create HashStorage");
+    let file_path = String::from("./data/hashes.json");
+    HashStorage::new(file_path).expect("Failed to create HashStorage");
+
+    let hash_this_file = "./test.txt";
+    hash_file(hash_this_file);
 }
