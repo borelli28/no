@@ -90,11 +90,11 @@ fn cli_menu() {
         if input == "g" {
             let hash_this_file = "./test.txt";
             let result = hash_file(hash_this_file);
-            println!("{} \n", result);
+            println!("\n {} \n", result);
         } else if input == "q" {
             break
         } else {
-            println!("Invalid input \n")
+            println!("\n Invalid input \n")
         }
     }
 }
