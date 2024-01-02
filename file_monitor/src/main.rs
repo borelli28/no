@@ -45,7 +45,6 @@ impl HashStorage {
         match calculate_sha256(file_path) {
             Ok(hash) => {
                 self.hashes.insert(file_path.to_string(), hash);
-                self.save_to_file()?;
                 Ok(())
             }
             Err(err) => Err(err),
