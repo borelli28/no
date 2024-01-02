@@ -84,21 +84,17 @@ fn cli_menu() {
         println!("[G] Generate Hash, [Q] Quit");
 
         let mut input = String::new();
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read line");
-    
-        let input = input.trim().to_lowercase();
-        let input: &str = input.as_str();
+        io::stdin().read_line(&mut input).expect("Failed to read line");
+        let input: String = input.trim().to_lowercase();
     
         if input == "g" {
             let hash_this_file = "./test.txt";
             let result = hash_file(hash_this_file);
-            println!("{}", result);
+            println!("{} \n", result);
         } else if input == "q" {
             break
         } else {
-            println!("nothing else")
+            println!("Invalid input \n")
         }
     }
 }
