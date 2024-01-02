@@ -61,6 +61,7 @@ impl HashStorage {
     }
 }
 
+// Individual file hash verification
 fn hash_file(file_path: &str) {
     let result = calculate_sha256(file_path);
 
