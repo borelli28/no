@@ -61,11 +61,27 @@ impl HashStorage {
     }
 }
 
-// fn monitor(file_path: str) -> io::Result<()> {
-//     directories_file = file_path;
+fn hash_file(file_path: &str) {
+    let result = calculate_sha256(file_path);
+
+    match result {
+        Ok(hash) => {
+            println!("Hash: {}", hash);
+        }
+        Err(err) => {
+            eprintln!("Error: {:?}", err);
+        }
+    }
+}
+
+// fn monitor(file_path: &str) -> io::Result<()> {
+//     let directories_file = file_path;
 // }
 
 fn main() {
     let file_path = String::from("./data/hashes.json");
     HashStorage::new(file_path).expect("Failed to create HashStorage");
+
+    let hash_this_file = "./test.txt";
+    hash_file(hash_this_file);
 }
