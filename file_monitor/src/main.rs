@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs::File;
+use std::fs;
 use std::io::{self, BufReader, Read, Write};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -79,6 +80,13 @@ fn hash_file(file_path: &str) -> String {
 //     let directories_file = file_path;
 // }
 
+fn check_file_exists(file_path: &str) -> io::Result<()> {
+    if !fs::metadata(file_path).is_ok() {
+        fs::write(file_path, "")?;
+    }
+    Ok(())
+}
+
 fn cli_menu() {
     loop {
         println!("[G] Generate Hash, [Q] Quit");
@@ -107,8 +115,8 @@ fn cli_menu() {
 }
 
 fn main() {
-    let file_path = String::from("./data/hashes.json");
-    HashStorage::new(file_path).expect("Failed to create HashStorage");
+    let hashes_db = String::from("./data/hashes.json");
+    HashStorage::new(hashes_db).expect("Failed to create HashStorage");
 
     cli_menu();
 }
