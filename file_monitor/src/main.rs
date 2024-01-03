@@ -1,13 +1,10 @@
-use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::fs;
 use std::io::{self, BufReader, Read, Write};
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use chrono::Utc;
 
 
-fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
+fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     let file = File::open(file_path)?;
     let mut reader = BufReader::new(file);
     let mut hash = Sha256::new();
@@ -39,11 +36,24 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
-fn check_file_exists(file_path: &str) -> io::Result<()> {
+fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
     if !fs::metadata(file_path).is_ok() {
         fs::write(file_path, "")?;
     }
-    Ok(())
+    Ok(String::from("Ok"))
+}
+
+fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
+    match check_file_exists(file_path) {
+        Ok(response) => {
+            let mut file = OpenOptions::new().append(true).open(file_path)?;
+            file.write_all(hash.as_bytes())?;
+            file.write_all(b"\n")?; // Add a new line
+            file.write_all(creation_timestamp.as_bytes())?;
+            Ok(String::from("Ok"))
+        }
+        Err(err) => Err(err),
+    }
 }
 
 fn cli_menu() {
