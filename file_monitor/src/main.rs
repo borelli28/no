@@ -39,10 +39,6 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
-// fn monitor(file_path: &str) -> io::Result<()> {
-//     let directories_file = file_path;
-// }
-
 fn check_file_exists(file_path: &str) -> io::Result<()> {
     if !fs::metadata(file_path).is_ok() {
         fs::write(file_path, "")?;
@@ -88,7 +84,6 @@ fn cli_menu() {
 
 fn main() {
     let hashes_db = String::from("./data/hashes.json");
-    HashStorage::new(hashes_db).expect("Failed to create HashStorage");
 
     cli_menu();
 }
