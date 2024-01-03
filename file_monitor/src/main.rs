@@ -25,33 +25,6 @@ fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
     Ok(format!("{:x}", result))
 }
 
-#[derive(Serialize, Deserialize)]
-struct HashStorage {
-    hashes: HashMap<String, String>,
-    file_path: String,
-}
-
-impl HashStorage {
-    fn new(file_path: String) -> io::Result<Self> {
-        let storage = HashStorage {
-            hashes: HashMap::new(),
-            file_path: file_path,
-        };
-
-        Ok(storage)
-    }
-
-    fn add_hash(&mut self, file_path: &str) -> io::Result<()> {
-        match calculate_sha256(file_path) {
-            Ok(hash) => {
-                self.hashes.insert(file_path.to_string(), hash);
-                Ok(())
-            }
-            Err(err) => Err(err),
-        }
-    }
-}
-
 // Individual file hash verification
 fn hash_file(file_path: &str) -> String {
     let result = calculate_sha256(file_path);
