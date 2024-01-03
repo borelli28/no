@@ -1,13 +1,10 @@
-use std::collections::HashMap;
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::fs;
 use std::io::{self, BufReader, Read, Write};
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use chrono::Utc;
 
 
-fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
+fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     let file = File::open(file_path)?;
     let mut reader = BufReader::new(file);
     let mut hash = Sha256::new();
@@ -25,33 +22,6 @@ fn calculate_sha256(file_path: &str) -> Result<String, std::io::Error> {
     Ok(format!("{:x}", result))
 }
 
-#[derive(Serialize, Deserialize)]
-struct HashStorage {
-    hashes: HashMap<String, String>,
-    file_path: String,
-}
-
-impl HashStorage {
-    fn new(file_path: String) -> io::Result<Self> {
-        let storage = HashStorage {
-            hashes: HashMap::new(),
-            file_path: file_path,
-        };
-
-        Ok(storage)
-    }
-
-    fn add_hash(&mut self, file_path: &str) -> io::Result<()> {
-        match calculate_sha256(file_path) {
-            Ok(hash) => {
-                self.hashes.insert(file_path.to_string(), hash);
-                Ok(())
-            }
-            Err(err) => Err(err),
-        }
-    }
-}
-
 // Individual file hash verification
 fn hash_file(file_path: &str) -> String {
     let result = calculate_sha256(file_path);
@@ -66,15 +36,24 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
-// fn monitor(file_path: &str) -> io::Result<()> {
-//     let directories_file = file_path;
-// }
-
-fn check_file_exists(file_path: &str) -> io::Result<()> {
+fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
     if !fs::metadata(file_path).is_ok() {
         fs::write(file_path, "")?;
     }
-    Ok(())
+    Ok(String::from("Ok"))
+}
+
+fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
+    match check_file_exists(file_path) {
+        Ok(response) => {
+            let mut file = OpenOptions::new().append(true).open(file_path)?;
+            file.write_all(hash.as_bytes())?;
+            file.write_all(b"\n")?; // Add a new line
+            file.write_all(creation_timestamp.as_bytes())?;
+            Ok(String::from("Ok"))
+        }
+        Err(err) => Err(err),
+    }
 }
 
 fn cli_menu() {
@@ -115,7 +94,6 @@ fn cli_menu() {
 
 fn main() {
     let hashes_db = String::from("./data/hashes.json");
-    HashStorage::new(hashes_db).expect("Failed to create HashStorage");
 
     cli_menu();
 }
