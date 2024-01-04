@@ -104,20 +104,25 @@ fn cli_menu() {
             println!("\n Enter file path: ");
             let mut file = String::new();
             io::stdin().read_line(&mut file).expect("Failed to read line");
-
             let file: &str = file.trim();
-            let hash = hash_file(&file);
-            let hash = hash.as_str();
-            let now = Utc::now();
-            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-            match write_hash(hash, file, timestamp) {
+            match check_file_exists(file) {
                 Ok(response) => {
-                    println!("\n {} \n", response);
+                    let hash = hash_file(&file);
+                    let hash = hash.as_str();
+                    let now = Utc::now();
+                    let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+        
+                    match write_hash(hash, file, timestamp) {
+                        Ok(response) => {
+                            println!("\n {} \n", response);
+                        }
+                        Err(err) => {
+                            eprintln!("Error reading the file: {}", err);
+                        }
+                    }
                 }
-                Err(err) => {
-                    eprintln!("Error reading the file: {}", err);
-                }
+                Err(err) => eprintln!("{}", err),
             }
 
         } else {
