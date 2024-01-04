@@ -24,7 +24,6 @@ fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     Ok(format!("{:x}", result))
 }
 
-// Individual file hash verification
 fn hash_file(file_path: &str) -> String {
     let result = calculate_sha256(file_path);
 
@@ -38,17 +37,30 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
-fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
-    if !fs::metadata(file_path).is_ok() {
-        fs::write(file_path, "")?;
+fn create_file(file_path: &str) -> Result<String, io::Error> {
+    match fs::write(file_path, "") {
+        Ok(_) => {
+            Ok(String::from("Ok"))},
+        Err(err) => {
+            Err(err)
+        }
     }
-    Ok(String::from("Ok"))
+}
+
+fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
+    match fs::metadata(file_path) {
+        Ok(_) => {
+            Ok(String::from("Ok"))},
+        Err(err) => {
+            Err(err)
+        }
+    }
 }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
-    match check_file_exists(file_path) {
+    match check_file_exists("./data/hashes.json") {
         Ok(response) => {
-            let mut file = OpenOptions::new().append(true).open(file_path)?;
+            let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
             let text = json!({
                 "hash": hash,
@@ -59,15 +71,21 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
             file.write_all(b"\n")?;
             file.write_all(text.as_bytes())?;
 
-            Ok(String::from("Ok"))
+            Ok(String::from("Added to hashes.json"))
         }
-        Err(err) => Err(err),
+        Err(err) => {
+            match create_file("./data/hashes.json") {
+                Ok(response) => {
+                    write_hash(hash, file_path, creation_timestamp);
+                    Ok(String::from("Ok"))
+                },
+                Err(err) => Err(err),
+            }
+        }
     }
 }
 
 fn cli_menu() {
-    let hashes_json = "./data/hashes.json";
-
     loop {
         println!("[G] Generate Hash, [A] Add file, [Q] Quit");
         
@@ -76,29 +94,41 @@ fn cli_menu() {
         let input: String = input.trim().to_lowercase();
     
         if input == "g" {
-            println!("\n Path to file: ");
+            println!("\n Enter file path: ");
             let mut file = String::new();
             io::stdin().read_line(&mut file).expect("Failed to read line");
             let file: &str = file.trim();
 
-            let hash = hash_file(&file);
-            println!("\n {} \n", hash);
+            let response = hash_file(&file);
+            println!("\n {} \n", response);
 
         } else if input == "q" {
             break
 
         } else if input == "a" {
-            println!("\n Path to file: ");
+            println!("\n Enter file path: ");
             let mut file = String::new();
             io::stdin().read_line(&mut file).expect("Failed to read line");
-
             let file: &str = file.trim();
-            let hash = hash_file(&file);
-            let hash = hash.as_str();
-            let now = Utc::now();
-            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-            write_hash(hash, hashes_json, timestamp);
+            match check_file_exists(file) {
+                Ok(response) => {
+                    let hash = hash_file(&file);
+                    let hash = hash.as_str();
+                    let now = Utc::now();
+                    let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+        
+                    match write_hash(hash, file, timestamp) {
+                        Ok(response) => {
+                            println!("\n {} \n", response);
+                        }
+                        Err(err) => {
+                            eprintln!("Error reading the file: {}", err);
+                        }
+                    }
+                }
+                Err(err) => eprintln!("{}", err),
+            }
 
         } else {
             println!("\n Invalid input \n")
