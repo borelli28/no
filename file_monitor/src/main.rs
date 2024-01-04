@@ -40,7 +40,8 @@ fn hash_file(file_path: &str) -> String {
 
 fn create_file(file_path: &str) -> Result<String, io::Error> {
     match fs::write(file_path, "") {
-        Ok(_) => Ok(String::from("Ok")),
+        Ok(_) => {
+            Ok(String::from("Ok"))},
         Err(err) => {
             Err(err)
         }
@@ -49,21 +50,18 @@ fn create_file(file_path: &str) -> Result<String, io::Error> {
 
 fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
     match fs::metadata(file_path) {
-        Ok(_) => Ok(String::from("Ok")),
-        Err(err) => Err(err),
+        Ok(_) => {
+            Ok(String::from("Ok"))},
+        Err(err) => {
+            Err(err)
+        }
     }
 }
-
-// match create_file(file_path) {
-//     Ok(response) => {
-//         Ok(String::from("Ok"))
-//     }
-//     Err(err) => Err(err),
-// }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
         Ok(response) => {
+            println!("check_file_exist Ok");
             let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
             let text = json!({
@@ -77,7 +75,16 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
             Ok(String::from("Added to hashes.json"))
         }
-        Err(err) => Err(err),
+        Err(err) => {
+            println!("check_file_exist returned error");
+            match create_file("./data/hashes.json") {
+                Ok(response) => {
+                    write_hash(hash, file_path, creation_timestamp);
+                    Ok(String::from("Ok"))
+                },
+                Err(err) => Err(err),
+            }
+        }
     }
 }
 
