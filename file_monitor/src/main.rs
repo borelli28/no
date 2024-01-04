@@ -38,18 +38,24 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
-fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
-    if !fs::metadata(file_path).is_ok() {
-        fs::write(file_path, "")?;
-    }
-    Ok(String::from("Ok"))
-}
-
 fn create_file(file_path: &str) -> Result<String, io::Error> {
     match fs::write(file_path, "") {
         Ok(_) => Ok(String::from("Ok")),
         Err(err) => {
             Err(err)
+        }
+    }
+}
+
+fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
+    if fs::metadata(file_path).is_ok() {
+        Ok(String::from("Ok"))
+    } else {
+        match create_file(file_path) {
+            Ok(response) => {
+                Ok(String::from("Ok"))
+            }
+            Err(err) => Err(err),
         }
     }
 }
