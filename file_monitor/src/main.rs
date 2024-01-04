@@ -48,16 +48,17 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(response) => {
-            println!("boi");
             let mut file = OpenOptions::new().append(true).open(file_path)?;
-            file.write_all(b"\n")?;
 
             let text = json!({
                 "hash": hash,
                 "file_path": file_path,
                 "creation_timestamp": creation_timestamp
             }).to_string();
+
+            file.write_all(b"\n")?;
             file.write_all(text.as_bytes())?;
+
             Ok(String::from("Ok"))
         }
         Err(err) => Err(err),
