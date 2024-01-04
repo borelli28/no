@@ -48,17 +48,18 @@ fn create_file(file_path: &str) -> Result<String, io::Error> {
 }
 
 fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
-    if fs::metadata(file_path).is_ok() {
-        Ok(String::from("Ok"))
-    } else {
-        match create_file(file_path) {
-            Ok(response) => {
-                Ok(String::from("Ok"))
-            }
-            Err(err) => Err(err),
-        }
+    match fs::metadata(file_path) {
+        Ok(_) => Ok(String::from("Ok")),
+        Err(err) => Err(err),
     }
 }
+
+// match create_file(file_path) {
+//     Ok(response) => {
+//         Ok(String::from("Ok"))
+//     }
+//     Err(err) => Err(err),
+// }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
