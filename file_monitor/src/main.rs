@@ -66,15 +66,16 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 }
 
 fn cli_menu() {
-    loop {
-        println!("[G] Generate Hash, [A] Add file to monitoring list, [Q] Quit");
+    let hashes_json = "./data/hashes.json";
 
+    loop {
+        println!("[G] Generate Hash, [A] Add file, [Q] Quit");
+        
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
         let input: String = input.trim().to_lowercase();
     
         if input == "g" {
-            // ./test.txt
             println!("\n Path to file: ");
             let mut file = String::new();
             io::stdin().read_line(&mut file).expect("Failed to read line");
@@ -97,7 +98,7 @@ fn cli_menu() {
             let now = Utc::now();
             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-            write_hash(hash, file, timestamp);
+            write_hash(hash, hashes_json, timestamp);
 
         } else {
             println!("\n Invalid input \n")
@@ -106,7 +107,5 @@ fn cli_menu() {
 }
 
 fn main() {
-    let hashes_db = String::from("./data/hashes.json");
-
     cli_menu();
 }
