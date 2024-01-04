@@ -48,7 +48,7 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(response) => {
-            let mut file = OpenOptions::new().append(true).open(file_path)?;
+            let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
             let text = json!({
                 "hash": hash,
@@ -66,8 +66,6 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 }
 
 fn cli_menu() {
-    let hashes_json = "./data/hashes.json";
-
     loop {
         println!("[G] Generate Hash, [A] Add file, [Q] Quit");
         
@@ -98,7 +96,7 @@ fn cli_menu() {
             let now = Utc::now();
             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-            match write_hash(hash, hashes_json, timestamp) {
+            match write_hash(hash, file, timestamp) {
                 Ok(response) => {
                     println!("\n {} \n", response);
                 }
