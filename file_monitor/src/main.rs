@@ -76,7 +76,7 @@ fn cli_menu() {
         let input: String = input.trim().to_lowercase();
     
         if input == "g" {
-            println!("\n Path to file: ");
+            println!("\n Enter file path: ");
             let mut file = String::new();
             io::stdin().read_line(&mut file).expect("Failed to read line");
             let file: &str = file.trim();
@@ -88,7 +88,7 @@ fn cli_menu() {
             break
 
         } else if input == "a" {
-            println!("\n Path to file: ");
+            println!("\n Enter file path: ");
             let mut file = String::new();
             io::stdin().read_line(&mut file).expect("Failed to read line");
 
