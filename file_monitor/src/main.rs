@@ -24,7 +24,6 @@ fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     Ok(format!("{:x}", result))
 }
 
-// Individual file hash verification
 fn hash_file(file_path: &str) -> String {
     let result = calculate_sha256(file_path);
 
@@ -61,7 +60,6 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
         Ok(response) => {
-            println!("check_file_exist Ok");
             let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
             let text = json!({
@@ -76,7 +74,6 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
             Ok(String::from("Added to hashes.json"))
         }
         Err(err) => {
-            println!("check_file_exist returned error");
             match create_file("./data/hashes.json") {
                 Ok(response) => {
                     write_hash(hash, file_path, creation_timestamp);
