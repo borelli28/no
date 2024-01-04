@@ -45,8 +45,17 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
+fn create_file(file_path: &str) -> Result<String, io::Error> {
+    match fs::write(file_path, "") {
+        Ok(_) => Ok(String::from("Ok")),
+        Err(err) => {
+            Err(err)
+        }
+    }
+}
+
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
-    match check_file_exists(file_path) {
+    match check_file_exists("./data/hashes.json") {
         Ok(response) => {
             let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
