@@ -59,7 +59,7 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
             file.write_all(b"\n")?;
             file.write_all(text.as_bytes())?;
 
-            Ok(String::from("Ok"))
+            Ok(String::from("Added to hashes.json"))
         }
         Err(err) => Err(err),
     }
@@ -81,8 +81,8 @@ fn cli_menu() {
             io::stdin().read_line(&mut file).expect("Failed to read line");
             let file: &str = file.trim();
 
-            let hash = hash_file(&file);
-            println!("\n {} \n", hash);
+            let response = hash_file(&file);
+            println!("\n {} \n", response);
 
         } else if input == "q" {
             break
@@ -98,7 +98,14 @@ fn cli_menu() {
             let now = Utc::now();
             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-            write_hash(hash, hashes_json, timestamp);
+            match write_hash(hash, hashes_json, timestamp) {
+                Ok(response) => {
+                    println!("\n {} \n", response);
+                }
+                Err(err) => {
+                    eprintln!("Error reading the file: {}", err);
+                }
+            }
 
         } else {
             println!("\n Invalid input \n")
