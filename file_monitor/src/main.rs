@@ -1,6 +1,6 @@
 use std::fs::{File, OpenOptions};
 use std::fs;
-use std::io::{self, BufReader, Read, Write};
+use std::io::{self, BufReader, BufRead, Read, Write};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde_json::json;
@@ -85,6 +85,23 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
     }
 }
 
+fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
+    match check_file_exists(file_path) {
+        Ok(_) => {
+            let file = File::open(file_path)?;
+            let reader = BufReader::new(file);
+            for line in reader.lines() {
+                println!("{}", line?);
+            }
+            Ok(String::from("Ok"))
+        }
+        Err(err) => {
+            Err(err)
+            // No file found. 
+        }
+    }
+}
+
 fn cli_menu() {
     loop {
         println!("[G] Generate Hash, [A] Add file, [M] Monitor, [Q] Quit");
@@ -131,6 +148,7 @@ fn cli_menu() {
             }
         } else if input == "m" {
             println!("Placeholder");
+            monitor_mode("./data/unix-dirs.json");
 
         } else {
             println!("\n Invalid input \n")
