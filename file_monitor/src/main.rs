@@ -59,7 +59,7 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
-        Ok(response) => {
+        Ok(_) => {
             let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
             let text = json!({
@@ -73,9 +73,9 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
             Ok(String::from("Added to hashes.json"))
         }
-        Err(err) => {
+        Err(_err) => {
             match create_file("./data/hashes.json") {
-                Ok(response) => {
+                Ok(_) => {
                     write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
                 },
@@ -112,7 +112,7 @@ fn cli_menu() {
             let file: &str = file.trim();
 
             match check_file_exists(file) {
-                Ok(response) => {
+                Ok(_) => {
                     let hash = hash_file(&file);
                     let hash = hash.as_str();
                     let now = Utc::now();
