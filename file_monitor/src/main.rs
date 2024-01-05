@@ -87,7 +87,7 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [M] Monitor, [Q] Quit");
         
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -129,6 +129,8 @@ fn cli_menu() {
                 }
                 Err(err) => eprintln!("{}", err),
             }
+        } else if input == "m" {
+            println!("Placeholder");
 
         } else {
             println!("\n Invalid input \n")
