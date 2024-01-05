@@ -92,12 +92,16 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
             let reader = BufReader::new(file);
             for line in reader.lines() {
                 println!("{}", line?);
+                println!("here");
+                // If the line exist in hashes.json, delete it, then call write_hash()
+                // else, call write_hash()
+
             }
             Ok(String::from("Ok"))
         }
         Err(err) => {
             Err(err)
-            // No file found. 
+            // No file found.
         }
     }
 }
@@ -148,7 +152,7 @@ fn cli_menu() {
             }
         } else if input == "m" {
             println!("Placeholder");
-            monitor_mode("./data/unix-dirs.json");
+            monitor_mode("./data/unix-dirs.txt");
 
         } else {
             println!("\n Invalid input \n")
