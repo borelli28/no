@@ -1,8 +1,8 @@
 use std::fs::{File, OpenOptions};
 use std::fs;
-use std::io::{self, BufReader, Read, Write};
+use std::io::{self, BufReader, BufRead, Read, Write};
 use sha2::{Digest, Sha256};
-use chrono::{Utc, Datelike, Timelike};
+use chrono::{Utc};
 use serde_json::json;
 
 
@@ -59,7 +59,7 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
-        Ok(response) => {
+        Ok(_) => {
             let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
             let text = json!({
@@ -73,9 +73,9 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
             Ok(String::from("Added to hashes.json"))
         }
-        Err(err) => {
+        Err(_err) => {
             match create_file("./data/hashes.json") {
-                Ok(response) => {
+                Ok(_) => {
                     write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
                 },
@@ -85,9 +85,26 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
     }
 }
 
+fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
+    match check_file_exists(file_path) {
+        Ok(_) => {
+            let file = File::open(file_path)?;
+            let reader = BufReader::new(file);
+            for line in reader.lines() {
+                println!("{}", line?);
+            }
+            Ok(String::from("Ok"))
+        }
+        Err(err) => {
+            Err(err)
+            // No file found. 
+        }
+    }
+}
+
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [M] Monitor, [Q] Quit");
         
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -112,7 +129,7 @@ fn cli_menu() {
             let file: &str = file.trim();
 
             match check_file_exists(file) {
-                Ok(response) => {
+                Ok(_) => {
                     let hash = hash_file(&file);
                     let hash = hash.as_str();
                     let now = Utc::now();
@@ -129,6 +146,9 @@ fn cli_menu() {
                 }
                 Err(err) => eprintln!("{}", err),
             }
+        } else if input == "m" {
+            println!("Placeholder");
+            monitor_mode("./data/unix-dirs.json");
 
         } else {
             println!("\n Invalid input \n")
