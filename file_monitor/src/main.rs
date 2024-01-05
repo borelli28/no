@@ -91,11 +91,21 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
             let file = File::open(file_path)?;
             let reader = BufReader::new(file);
             for line in reader.lines() {
-                println!("{}", line?);
-                println!("here");
-                // If the line exist in hashes.json, delete it, then call write_hash()
+                let line = line?;
+                let hash = hash_file(&line);
+                let hash_str: &str = &hash;
+                let now = Utc::now();
+                let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+                // If the line exists in hashes.json, delete it, then call write_hash()
                 // else, call write_hash()
-
+                match write_hash(hash_str, &line, timestamp) {
+                    Ok(_) => {
+                        println!("Ok");
+                    }
+                    Err(err) => {
+                        eprintln!("Error: {}", err);
+                    }
+                }
             }
             Ok(String::from("Ok"))
         }
