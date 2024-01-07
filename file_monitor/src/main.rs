@@ -4,6 +4,7 @@ use std::io::{self, BufReader, BufRead, Read, Write};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde_json::json;
+use std::path::{Path, PathBuf};
 
 
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
@@ -92,18 +93,28 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
             let reader = BufReader::new(file);
             for line in reader.lines() {
                 let line = line?;
-                let hash = hash_file(&line);
-                let hash_str: &str = &hash;
-                let now = Utc::now();
-                let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                // If the line exists in hashes.json, delete it, then call write_hash()
-                // else, call write_hash()
-                match write_hash(hash_str, &line, timestamp) {
-                    Ok(_) => {
-                        println!("Ok");
-                    }
-                    Err(err) => {
-                        eprintln!("Error: {}", err);
+
+                for entry in fs::read_dir(line)? {
+                    let entry = entry?;
+                    let path = entry.path();
+                    if path.is_dir() {
+                        println!("path is dir");
+                    } else {
+                        let path = format!("{}", path.to_string_lossy());
+                        let hash = hash_file(&path);
+                        let hash_str: &str = &hash;
+                        let now = Utc::now();
+                        let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+                        // If the line exists in hashes.json, delete it, then call write_hash()
+                        // else, call write_hash()
+                        match write_hash(hash_str, &path, timestamp) {
+                            Ok(_) => {
+                                println!("Ok");
+                            }
+                            Err(err) => {
+                                eprintln!("Error: {}", err);
+                            }
+                        }
                     }
                 }
             }
