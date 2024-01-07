@@ -100,7 +100,7 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
                     if path.is_dir() {
                         println!("path is dir");
                     } else {
-                        let path = format!("{}", path.to_string_lossy());
+                        let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
                         let hash = hash_file(&path);
                         let hash_str: &str = &hash;
                         let now = Utc::now();
