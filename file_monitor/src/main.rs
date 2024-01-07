@@ -93,18 +93,15 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
             let reader = BufReader::new(file);
             for line in reader.lines() {
                 let line = line?;
-                println!("96");
-                if let Ok(entries) = fs::read_dir(&line) {
+                if let Ok(entries) = fs::read_dir(&line) { // If the directory is found in the user system
                     for entry in entries {
-                        println!("98");
                         let entry = entry?;
                         let path = entry.path();
-                        println!("101");
                         if path.is_dir() {
                             println!("path is dir");
                         } else {
                             let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
-                            println!("path: {}", path);
+                            // println!("path: {}", path);
                             let hash = hash_file(&path);
                             let hash_str: &str = &hash;
                             let now = Utc::now();
@@ -121,6 +118,8 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
                             }
                         }
                     }
+                } else {
+                    println!("{} was not found in this system", line);
                 }
             }
             Ok(String::from("Ok"))
