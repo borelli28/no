@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 struct Hashes {
     hash: String,
     file_path: String,
-    creation_timestamp: String,
+    timestamp: String,
 }
 
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
@@ -72,9 +72,9 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
             let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
             let text = Hashes{
-                "hash": hash,
-                "file_path": file_path,
-                "creation_timestamp": creation_timestamp
+                hash: hash.to_string(),
+                file_path: file_path.to_string(),
+                timestamp: creation_timestamp.to_string()
             };
 
             // file.write_all(b"\n")?;
