@@ -123,8 +123,8 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
                             let hash_str: &str = &hash;
                             let now = Utc::now();
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                            // TODO: If the line exists in hashes.json, delete it, then call write_hash()
-                            // else, call write_hash()
+                            // TODO: When running full scan delete the hashes.json file to clear all hashes
+
                             match write_hash(hash_str, &path, timestamp) {
                                 Ok(_) => {
                                     println!("Ok");
