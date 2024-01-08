@@ -199,6 +199,9 @@ fn cli_menu() {
     }
 }
 
+// TODO: Convert dirs.txt into json
+// TODO: When [Add File], actually add file path to dirs.json
+
 fn main() {
     cli_menu();
 }
