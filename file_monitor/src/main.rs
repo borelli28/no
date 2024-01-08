@@ -1,11 +1,9 @@
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::fs;
-use std::io::{self, BufReader, BufRead, Read, Write};
+use std::io::{self, BufReader, BufRead, Read};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
-use serde_json::json;
 use serde::{Serialize, Deserialize};
-use std::path::{Path, PathBuf};
 
 
 #[derive(Serialize, Deserialize)]
@@ -78,23 +76,23 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
                 },
                 Err(_) => Vec::new(), // If the file doesn't exist or is empty, create a new Vec<Hashes>
             };
-        
+
             let new_hash = Hashes {
                 hash: hash.to_string(),
                 file_path: file_path.to_string(),
                 timestamp: creation_timestamp.to_string(),
             };
-        
+
             hashes.push(new_hash);
             let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
             fs::write(hashes_file, json_string)?; // Write the updated JSON string back to the file
-        
+
             Ok(String::from("Added to hashes.json"))
         }
         Err(_err) => {
             match create_file(hashes_file) {
                 Ok(_) => {
-                    write_hash(hash, file_path, creation_timestamp);
+                    let _ = write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
                 },
                 Err(err) => Err(err),
@@ -103,9 +101,10 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
     }
 }
 
-fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
+fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
+            // TODO: When running full scan delete the hashes.json file to clear all hashes
             let file = File::open(file_path)?;
             let reader = BufReader::new(file);
             for line in reader.lines() {
@@ -123,8 +122,7 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
                             let hash_str: &str = &hash;
                             let now = Utc::now();
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                            // TODO: If the line exists in hashes.json, delete it, then call write_hash()
-                            // else, call write_hash()
+
                             match write_hash(hash_str, &path, timestamp) {
                                 Ok(_) => {
                                     println!("Ok");
@@ -150,12 +148,12 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [M] Monitor, [Q] Quit");
-        
+        println!("[G] Generate Hash, [A] Add file, [F] Full Scan, [Q] Quit");
+
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
         let input: String = input.trim().to_lowercase();
-    
+
         if input == "g" {
             println!("\n Enter file path: ");
             let mut file = String::new();
@@ -180,7 +178,7 @@ fn cli_menu() {
                     let hash = hash.as_str();
                     let now = Utc::now();
                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-        
+
                     match write_hash(hash, file, timestamp) {
                         Ok(response) => {
                             println!("\n {} \n", response);
@@ -192,9 +190,8 @@ fn cli_menu() {
                 }
                 Err(err) => eprintln!("{}", err),
             }
-        } else if input == "m" {
-            println!("Placeholder");
-            monitor_mode("./data/unix-dirs.txt");
+        } else if input == "f" {
+            let _ = full_scan("./data/unix-dirs.txt");
 
         } else {
             println!("\n Invalid input \n")
