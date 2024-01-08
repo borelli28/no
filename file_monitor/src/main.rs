@@ -69,9 +69,10 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
-    match check_file_exists("./data/hashes.json") {
+    let hashes_file = "./data/hashes.json";
+    match check_file_exists(hashes_file) {
         Ok(_) => {
-            let mut hashes: Vec<Hashes> = match fs::read_to_string("./data/hashes.json") {
+            let mut hashes: Vec<Hashes> = match fs::read_to_string(hashes_file) {
                 Ok(content) => {
                     serde_json::from_str(&content).unwrap_or(Vec::new()) // Parse the existing content into a Vec<Hashes>
                 },
@@ -86,12 +87,12 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
         
             hashes.push(new_hash);
             let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
-            fs::write("./data/hashes.json", json_string)?; // Write the updated JSON string back to the file
+            fs::write(hashes_file, json_string)?; // Write the updated JSON string back to the file
         
             Ok(String::from("Added to hashes.json"))
         }
         Err(_err) => {
-            match create_file("./data/hashes.json") {
+            match create_file(hashes_file) {
                 Ok(_) => {
                     write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
