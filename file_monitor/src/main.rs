@@ -47,7 +47,9 @@ fn hash_file(file_path: &str) -> String {
 }
 
 fn create_file(file_path: &str) -> Result<String, io::Error> {
-    match fs::write(file_path, "") {
+    let empty_array: Vec<Hashes> = Vec::new(); // Create an empty Vec of Hashes
+    let json_string = serde_json::to_string(&empty_array)?; // Serialize the empty array to a JSON string
+    match fs::write(file_path, json_string) {
         Ok(_) => {
             Ok(String::from("Ok"))},
         Err(err) => {
@@ -69,17 +71,23 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
         Ok(_) => {
-            let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
-
-            let text = Hashes{
+            let mut hashes: Vec<Hashes> = match fs::read_to_string("./data/hashes.json") {
+                Ok(content) => {
+                    serde_json::from_str(&content).unwrap_or(Vec::new()) // Parse the existing content into a Vec<Hashes>
+                },
+                Err(_) => Vec::new(), // If the file doesn't exist or is empty, create a new Vec<Hashes>
+            };
+        
+            let new_hash = Hashes {
                 hash: hash.to_string(),
                 file_path: file_path.to_string(),
-                timestamp: creation_timestamp.to_string()
+                timestamp: creation_timestamp.to_string(),
             };
-
-            let json_string = serde_json::to_string(&text)?; // Serialize the struct to a JSON string
-            file.write_all(json_string.as_bytes())?; // Write the JSON string to the file
-
+        
+            hashes.push(new_hash);
+            let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
+            fs::write("./data/hashes.json", json_string)?; // Write the updated JSON string back to the file
+        
             Ok(String::from("Added to hashes.json"))
         }
         Err(_err) => {
