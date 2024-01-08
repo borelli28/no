@@ -77,8 +77,8 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
                 timestamp: creation_timestamp.to_string()
             };
 
-            // file.write_all(b"\n")?;
-            file.write_all(text.as_bytes())?;
+            let json_string = serde_json::to_string(&text)?; // Serialize the struct to a JSON string
+            file.write_all(json_string.as_bytes())?; // Write the JSON string to the file
 
             Ok(String::from("Added to hashes.json"))
         }
