@@ -193,7 +193,6 @@ fn cli_menu() {
                 Err(err) => eprintln!("{}", err),
             }
         } else if input == "f" {
-            println!("Placeholder");
             full_scan("./data/unix-dirs.txt");
 
         } else {
