@@ -106,6 +106,7 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
+            // TODO: When running full scan delete the hashes.json file to clear all hashes
             let file = File::open(file_path)?;
             let reader = BufReader::new(file);
             for line in reader.lines() {
@@ -123,7 +124,6 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
                             let hash_str: &str = &hash;
                             let now = Utc::now();
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                            // TODO: When running full scan delete the hashes.json file to clear all hashes
 
                             match write_hash(hash_str, &path, timestamp) {
                                 Ok(_) => {
