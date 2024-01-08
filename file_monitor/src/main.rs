@@ -4,8 +4,16 @@ use std::io::{self, BufReader, BufRead, Read, Write};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde_json::json;
+use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
 
+
+#[derive(Serialize, Deserialize)]
+struct Hashes {
+    hash: String,
+    file_path: String,
+    timestamp: String,
+}
 
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     let file = File::open(file_path)?;
@@ -39,7 +47,9 @@ fn hash_file(file_path: &str) -> String {
 }
 
 fn create_file(file_path: &str) -> Result<String, io::Error> {
-    match fs::write(file_path, "") {
+    let empty_array: Vec<Hashes> = Vec::new(); // Create an empty Vec of Hashes
+    let json_string = serde_json::to_string(&empty_array)?; // Serialize the empty array to a JSON string
+    match fs::write(file_path, json_string) {
         Ok(_) => {
             Ok(String::from("Ok"))},
         Err(err) => {
@@ -59,23 +69,30 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
-    match check_file_exists("./data/hashes.json") {
+    let hashes_file = "./data/hashes.json";
+    match check_file_exists(hashes_file) {
         Ok(_) => {
-            let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
-
-            let text = json!({
-                "hash": hash,
-                "file_path": file_path,
-                "creation_timestamp": creation_timestamp
-            }).to_string();
-
-            file.write_all(b"\n")?;
-            file.write_all(text.as_bytes())?;
-
+            let mut hashes: Vec<Hashes> = match fs::read_to_string(hashes_file) {
+                Ok(content) => {
+                    serde_json::from_str(&content).unwrap_or(Vec::new()) // Parse the existing content into a Vec<Hashes>
+                },
+                Err(_) => Vec::new(), // If the file doesn't exist or is empty, create a new Vec<Hashes>
+            };
+        
+            let new_hash = Hashes {
+                hash: hash.to_string(),
+                file_path: file_path.to_string(),
+                timestamp: creation_timestamp.to_string(),
+            };
+        
+            hashes.push(new_hash);
+            let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
+            fs::write(hashes_file, json_string)?; // Write the updated JSON string back to the file
+        
             Ok(String::from("Added to hashes.json"))
         }
         Err(_err) => {
-            match create_file("./data/hashes.json") {
+            match create_file(hashes_file) {
                 Ok(_) => {
                     write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
