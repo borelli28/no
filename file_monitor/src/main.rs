@@ -103,7 +103,7 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
     }
 }
 
-fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
+fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
             // TODO: When running full scan delete the hashes.json file to clear all hashes
@@ -194,7 +194,7 @@ fn cli_menu() {
             }
         } else if input == "m" {
             println!("Placeholder");
-            monitor_mode("./data/unix-dirs.txt");
+            full_scan("./data/unix-dirs.txt");
 
         } else {
             println!("\n Invalid input \n")
