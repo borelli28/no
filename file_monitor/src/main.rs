@@ -150,7 +150,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [M] Monitor, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [F] Full Scan, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -192,7 +192,7 @@ fn cli_menu() {
                 }
                 Err(err) => eprintln!("{}", err),
             }
-        } else if input == "m" {
+        } else if input == "f" {
             println!("Placeholder");
             full_scan("./data/unix-dirs.txt");
 
