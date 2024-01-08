@@ -78,17 +78,17 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
                 },
                 Err(_) => Vec::new(), // If the file doesn't exist or is empty, create a new Vec<Hashes>
             };
-        
+
             let new_hash = Hashes {
                 hash: hash.to_string(),
                 file_path: file_path.to_string(),
                 timestamp: creation_timestamp.to_string(),
             };
-        
+
             hashes.push(new_hash);
             let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
             fs::write(hashes_file, json_string)?; // Write the updated JSON string back to the file
-        
+
             Ok(String::from("Added to hashes.json"))
         }
         Err(_err) => {
@@ -151,11 +151,11 @@ fn monitor_mode(file_path: &str) -> Result<String, io::Error> {
 fn cli_menu() {
     loop {
         println!("[G] Generate Hash, [A] Add file, [M] Monitor, [Q] Quit");
-        
+
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
         let input: String = input.trim().to_lowercase();
-    
+
         if input == "g" {
             println!("\n Enter file path: ");
             let mut file = String::new();
@@ -180,7 +180,7 @@ fn cli_menu() {
                     let hash = hash.as_str();
                     let now = Utc::now();
                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-        
+
                     match write_hash(hash, file, timestamp) {
                         Ok(response) => {
                             println!("\n {} \n", response);
