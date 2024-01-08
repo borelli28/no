@@ -191,7 +191,7 @@ fn cli_menu() {
                 Err(err) => eprintln!("{}", err),
             }
         } else if input == "f" {
-            let _ = full_scan("./data/unix-dirs.txt");
+            let _ = full_scan("./data/dirs.txt");
 
         } else {
             println!("\n Invalid input \n")
