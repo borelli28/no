@@ -191,13 +191,16 @@ fn cli_menu() {
                 Err(err) => eprintln!("{}", err),
             }
         } else if input == "f" {
-            let _ = full_scan("./data/unix-dirs.txt");
+            let _ = full_scan("./data/dirs.txt");
 
         } else {
             println!("\n Invalid input \n")
         }
     }
 }
+
+// TODO: Convert dirs.txt into json
+// TODO: When [Add File], actually add file path to dirs.json
 
 fn main() {
     cli_menu();
