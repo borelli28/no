@@ -61,9 +61,10 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
         Ok(_) => {
-            let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
+            let mut file = OpenOptions::new().read(true).write(true).open("./data/hashes.json")?;
+            let data = serde_json::from_reader(file)?;
 
-            let text = json!({
+            let text = serde_json::json!({
                 "hash": hash,
                 "file_path": file_path,
                 "creation_timestamp": creation_timestamp
