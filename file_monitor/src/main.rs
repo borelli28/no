@@ -4,8 +4,16 @@ use std::io::{self, BufReader, BufRead, Read, Write};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde_json::json;
+use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
 
+
+#[derive(Serialize, Deserialize)]
+struct Hashes {
+    hash: String,
+    file_path: String,
+    creation_timestamp: String,
+}
 
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     let file = File::open(file_path)?;
@@ -61,16 +69,15 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
     match check_file_exists("./data/hashes.json") {
         Ok(_) => {
-            let mut file = OpenOptions::new().read(true).write(true).open("./data/hashes.json")?;
-            let data = serde_json::from_reader(file)?;
+            let mut file = OpenOptions::new().append(true).open("./data/hashes.json")?;
 
-            let text = serde_json::json!({
+            let text = Hashes{
                 "hash": hash,
                 "file_path": file_path,
                 "creation_timestamp": creation_timestamp
-            }).to_string();
+            };
 
-            file.write_all(b"\n")?;
+            // file.write_all(b"\n")?;
             file.write_all(text.as_bytes())?;
 
             Ok(String::from("Added to hashes.json"))
