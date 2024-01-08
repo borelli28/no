@@ -1,11 +1,9 @@
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::fs;
-use std::io::{self, BufReader, BufRead, Read, Write};
+use std::io::{self, BufReader, BufRead, Read};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
-use serde_json::json;
 use serde::{Serialize, Deserialize};
-use std::path::{Path, PathBuf};
 
 
 #[derive(Serialize, Deserialize)]
@@ -94,7 +92,7 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
         Err(_err) => {
             match create_file(hashes_file) {
                 Ok(_) => {
-                    write_hash(hash, file_path, creation_timestamp);
+                    let _ = write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
                 },
                 Err(err) => Err(err),
@@ -193,7 +191,7 @@ fn cli_menu() {
                 Err(err) => eprintln!("{}", err),
             }
         } else if input == "f" {
-            full_scan("./data/unix-dirs.txt");
+            let _ = full_scan("./data/unix-dirs.txt");
 
         } else {
             println!("\n Invalid input \n")
