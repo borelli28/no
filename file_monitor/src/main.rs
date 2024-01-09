@@ -106,8 +106,6 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
-            // TODO: When running full scan delete the hashes.json file to clear all hashes
-
             // Read the JSON file
             let mut file = File::open(file_path).expect("File not found");
             let mut contents = String::new();
@@ -117,6 +115,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
             if let Some(obj) = json_data.as_array(){
+                let _ = fs::remove_file("./data/hashes.json")?; // Delete file before writing new hashes to avoid duplicates
                 for i in obj {
 
                     let line: String = i["path"].as_str().unwrap_or("default_path").to_string();
@@ -130,7 +129,6 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 println!("path is dir");
                             } else {
                                 let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
-                                // println!("path: {}", path);
                                 let hash = hash_file(&path);
                                 let hash_str: &str = &hash;
                                 let now = Utc::now();
@@ -147,8 +145,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             }
                         }
                     } else {
-                        // println!("{} was not found in this system", line);
-                        println!("dir was not found in the system");
+                        println!("{} was not found in this system", i["path"]);
                     }
                 }
             } else {
