@@ -1,35 +1,101 @@
 [
-    {"path": "/bin"},
-    {"path": "/sbin"},
-    {"path": "/usr/bin"},
-    {"path": "/usr/sbin"},
-    {"path": "/usr/local/bin"},
-    {"path": "/usr/local/sbin"},
-    {"path": "/lib"},
-    {"path": "/lib64"},
-    {"path": "/usr/lib"},
-    {"path": "/usr/lib64"},
-    {"path": "/usr/local/lib"},
-    {"path": "/usr/local/lib64"},
-    {"path": "/etc"},
-    {"path": "/boot"},
-    {"path": "/Library"},
-    {"path": "/var/log"},
-    {"path": "/etc/init.d"},
-    {"path": "/etc/launchd.conf"},
-    {"path": "/lib/modules"},
-    {"path": "/System/Library/Extensions"},
-    {"path": "/etc/cron.d"},
-    {"path": "/usr/lib/cron/tabs"},
-    {"path": "/etc/network"},
-    {"path": "/etc/security"},
-    {"path": "/etc/ssh"},
-    {"path": "/var/www"},
-    {"path": "/Library/WebServer/Documents"},
-    {"path": "/var/lib/mysql"},
-    {"path": "/var/lib/postgresql"},
-    {"path": "/usr/local/var/mysql"},
-    {"path": "/usr/local/var/postgres"},
-    {"path": "/System/Library"},
-    {"path": "/usr/libexec"}
+  {
+    "path": "/bin"
+  },
+  {
+    "path": "/sbin"
+  },
+  {
+    "path": "/usr/bin"
+  },
+  {
+    "path": "/usr/sbin"
+  },
+  {
+    "path": "/usr/local/bin"
+  },
+  {
+    "path": "/usr/local/sbin"
+  },
+  {
+    "path": "/lib"
+  },
+  {
+    "path": "/lib64"
+  },
+  {
+    "path": "/usr/lib"
+  },
+  {
+    "path": "/usr/lib64"
+  },
+  {
+    "path": "/usr/local/lib"
+  },
+  {
+    "path": "/usr/local/lib64"
+  },
+  {
+    "path": "/etc"
+  },
+  {
+    "path": "/boot"
+  },
+  {
+    "path": "/Library"
+  },
+  {
+    "path": "/var/log"
+  },
+  {
+    "path": "/etc/init.d"
+  },
+  {
+    "path": "/etc/launchd.conf"
+  },
+  {
+    "path": "/lib/modules"
+  },
+  {
+    "path": "/System/Library/Extensions"
+  },
+  {
+    "path": "/etc/cron.d"
+  },
+  {
+    "path": "/usr/lib/cron/tabs"
+  },
+  {
+    "path": "/etc/network"
+  },
+  {
+    "path": "/etc/security"
+  },
+  {
+    "path": "/etc/ssh"
+  },
+  {
+    "path": "/var/www"
+  },
+  {
+    "path": "/Library/WebServer/Documents"
+  },
+  {
+    "path": "/var/lib/mysql"
+  },
+  {
+    "path": "/var/lib/postgresql"
+  },
+  {
+    "path": "/usr/local/var/mysql"
+  },
+  {
+    "path": "/usr/local/var/postgres"
+  },
+  {
+    "path": "/System/Library"
+  },
+  {
+    "path": "/usr/libexec"
+  }
 ]
