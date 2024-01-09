@@ -130,7 +130,6 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 println!("path is dir");
                             } else {
                                 let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
-                                // println!("path: {}", path);
                                 let hash = hash_file(&path);
                                 let hash_str: &str = &hash;
                                 let now = Utc::now();
@@ -147,8 +146,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             }
                         }
                     } else {
-                        // println!("{} was not found in this system", line);
-                        println!("dir was not found in the system");
+                        println!("{} was not found in this system", i["path"]);
                     }
                 }
             } else {
