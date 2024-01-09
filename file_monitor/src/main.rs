@@ -1,9 +1,11 @@
 use std::fs::File;
 use std::fs;
+use std::path::Path;
 use std::io::{self, BufReader, BufRead, Read};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde::{Serialize, Deserialize};
+use std::path::PathBuf;
 
 
 #[derive(Serialize, Deserialize)]
@@ -105,37 +107,52 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
             // TODO: When running full scan delete the hashes.json file to clear all hashes
-            let file = File::open(file_path)?;
-            let reader = BufReader::new(file);
-            for line in reader.lines() {
-                let line = line?;
-                if let Ok(entries) = fs::read_dir(&line) { // If the directory is found in the user system
-                    for entry in entries {
-                        let entry = entry?;
-                        let path = entry.path();
-                        if path.is_dir() {
-                            println!("path is dir");
-                        } else {
-                            let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
-                            // println!("path: {}", path);
-                            let hash = hash_file(&path);
-                            let hash_str: &str = &hash;
-                            let now = Utc::now();
-                            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-                            match write_hash(hash_str, &path, timestamp) {
-                                Ok(_) => {
-                                    println!("Ok");
-                                }
-                                Err(err) => {
-                                    eprintln!("Error: {}", err);
+            // Read the JSON file
+            let mut file = File::open(file_path).expect("File not found");
+            let mut contents = String::new();
+            file.read_to_string(&mut contents).expect("Error reading the file");
+
+            // Parse the JSON data
+            let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
+
+            if let Some(obj) = json_data.as_array(){
+                for i in obj {
+
+                    let line: String = i["path"].as_str().unwrap_or("default_path").to_string();
+                    let the_path = PathBuf::from(line);
+
+                    if let Ok(entries) = std::fs::read_dir(the_path) { // If the directory is found in the user system
+                        for entry in entries {
+                            let entry = entry?;
+                            let path = entry.path();
+                            if path.is_dir() {
+                                println!("path is dir");
+                            } else {
+                                let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
+                                // println!("path: {}", path);
+                                let hash = hash_file(&path);
+                                let hash_str: &str = &hash;
+                                let now = Utc::now();
+                                let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+    
+                                match write_hash(hash_str, &path, timestamp) {
+                                    Ok(_) => {
+                                        println!("Ok");
+                                    }
+                                    Err(err) => {
+                                        eprintln!("Error: {}", err);
+                                    }
                                 }
                             }
                         }
+                    } else {
+                        // println!("{} was not found in this system", line);
+                        println!("dir was not found in the system");
                     }
-                } else {
-                    println!("{} was not found in this system", line);
                 }
+            } else {
+                println!("The parsed JSON is not an object");
             }
             Ok(String::from("Ok"))
         }
@@ -191,7 +208,7 @@ fn cli_menu() {
                 Err(err) => eprintln!("{}", err),
             }
         } else if input == "f" {
-            let _ = full_scan("./data/dirs.txt");
+            let _ = full_scan("./data/dirs.json");
 
         } else {
             println!("\n Invalid input \n")
