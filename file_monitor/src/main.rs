@@ -102,10 +102,13 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 }
 
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
+    println!("105");
     match check_file_exists(file_path) {
         Ok(_) => {
+            println!("107");
             // TODO: When running full scan delete the hashes.json file to clear all hashes
             let file = File::open(file_path)?;
+            println!("109");
             let reader = BufReader::new(file);
             for line in reader.lines() {
                 let line = line?;
@@ -191,7 +194,7 @@ fn cli_menu() {
                 Err(err) => eprintln!("{}", err),
             }
         } else if input == "f" {
-            let _ = full_scan("./data/dirs.txt");
+            let _ = full_scan("./data/dirs.json");
 
         } else {
             println!("\n Invalid input \n")
