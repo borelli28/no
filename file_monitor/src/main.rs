@@ -115,16 +115,11 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     // Parse the JSON into a serde_json Value
     let mut data: Value = serde_json::from_str(&contents)?;
 
-    let new_object = json!({
-        "path": file_path
-    });
+    let new_object = json!({"path": file_path});
 
     // Add the new object to the array
     if let Some(array) = data.as_array_mut() {
         array.push(new_object);
-    } else {
-        // If the JSON is not an array, create a new array with the existing data
-        data = json!([data, new_object]);
     }
 
     // Write the modified JSON back to the file

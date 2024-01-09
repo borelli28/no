@@ -97,11 +97,5 @@
   },
   {
     "path": "/usr/libexec"
-  },
-  {
-    "path": "./test.txt"
-  },
-  {
-    "path": "./test.txt"
   }
 ]
