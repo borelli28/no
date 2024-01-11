@@ -114,7 +114,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     // Parse the JSON into a serde_json Value
     let mut data: Value = serde_json::from_str(&contents)?;
 
-    let new_object = json!({"path": file_path});
+    let new_object = json!({"file_path": file_path});
 
     // Add the new object to the array
     if let Some(array) = data.as_array_mut() {
@@ -144,7 +144,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                 let _ = fs::remove_file("./data/hashes.json")?; // Delete file before writing new hashes to avoid duplicates
                 for i in obj {
 
-                    let line: String = i["path"].as_str().unwrap_or("default_path").to_string();
+                    let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                     let the_path = PathBuf::from(line);
 
                     if let Ok(entries) = std::fs::read_dir(the_path) { // If the directory is found in the user system
