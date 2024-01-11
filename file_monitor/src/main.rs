@@ -132,7 +132,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
-            println!("Reading directories... Please don't quit program until its complete");
+            println!("Reading directories... Please don't quit the program until it's complete.");
             // Read the JSON file
             let mut file = File::open(file_path).expect("File not found");
             let mut contents = String::new();
@@ -142,7 +142,8 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
             if let Some(obj) = json_data.as_array(){
-                let _ = fs::remove_file("./data/hashes.json")?; // Delete file before writing new hashes to avoid duplicates
+                let _ = fs::remove_file("./data/hashes.json").unwrap_or_default(); // Delete file before writing new hashes to avoid duplicates
+
                 for i in obj {
 
                     let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
