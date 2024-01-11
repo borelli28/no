@@ -173,7 +173,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 }
                             }
                         }
-                    } else {
+                    } else { // String is a file path instead of a directory path
                         println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
                         let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                         let hash = hash_file(&_line);
