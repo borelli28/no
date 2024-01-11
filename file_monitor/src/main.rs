@@ -203,9 +203,6 @@ fn cli_menu() {
             let response = hash_file(&file);
             println!("\n {} \n", response);
 
-        } else if input == "q" {
-            break
-
         } else if input == "a" {
             println!("\n Enter file path: ");
             let mut file = String::new();
@@ -232,8 +229,12 @@ fn cli_menu() {
                 }
                 Err(err) => eprintln!("{}", err),
             }
+
         } else if input == "f" {
             let _ = full_scan("./data/dirs.json");
+
+        } else if input == "q" {
+            break
 
         } else {
             println!("\n Invalid input \n")
