@@ -129,6 +129,10 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
+// TODO: Add function to find hash in hashes.json by file_path atrribute and delete that object from the file.
+// This function will be used to remove updated hashes
+// fn delete_hash(hash_file_path: &str, file_path: &str) {}
+
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
