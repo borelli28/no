@@ -1,101 +1,101 @@
 [
   {
-    "path": "/bin"
+    "file_path": "/bin"
   },
   {
-    "path": "/sbin"
+    "file_path": "/sbin"
   },
   {
-    "path": "/usr/bin"
+    "file_path": "/usr/bin"
   },
   {
-    "path": "/usr/sbin"
+    "file_path": "/usr/sbin"
   },
   {
-    "path": "/usr/local/bin"
+    "file_path": "/usr/local/bin"
   },
   {
-    "path": "/usr/local/sbin"
+    "file_path": "/usr/local/sbin"
   },
   {
-    "path": "/lib"
+    "file_path": "/lib"
   },
   {
-    "path": "/lib64"
+    "file_path": "/lib64"
   },
   {
-    "path": "/usr/lib"
+    "file_path": "/usr/lib"
   },
   {
-    "path": "/usr/lib64"
+    "file_path": "/usr/lib64"
   },
   {
-    "path": "/usr/local/lib"
+    "file_path": "/usr/local/lib"
   },
   {
-    "path": "/usr/local/lib64"
+    "file_path": "/usr/local/lib64"
   },
   {
-    "path": "/etc"
+    "file_path": "/etc"
   },
   {
-    "path": "/boot"
+    "file_path": "/boot"
   },
   {
-    "path": "/Library"
+    "file_path": "/Library"
   },
   {
-    "path": "/var/log"
+    "file_path": "/var/log"
   },
   {
-    "path": "/etc/init.d"
+    "file_path": "/etc/init.d"
   },
   {
-    "path": "/etc/launchd.conf"
+    "file_path": "/etc/launchd.conf"
   },
   {
-    "path": "/lib/modules"
+    "file_path": "/lib/modules"
   },
   {
-    "path": "/System/Library/Extensions"
+    "file_path": "/System/Library/Extensions"
   },
   {
-    "path": "/etc/cron.d"
+    "file_path": "/etc/cron.d"
   },
   {
-    "path": "/usr/lib/cron/tabs"
+    "file_path": "/usr/lib/cron/tabs"
   },
   {
-    "path": "/etc/network"
+    "file_path": "/etc/network"
   },
   {
-    "path": "/etc/security"
+    "file_path": "/etc/security"
   },
   {
-    "path": "/etc/ssh"
+    "file_path": "/etc/ssh"
   },
   {
-    "path": "/var/www"
+    "file_path": "/var/www"
   },
   {
-    "path": "/Library/WebServer/Documents"
+    "file_path": "/Library/WebServer/Documents"
   },
   {
-    "path": "/var/lib/mysql"
+    "file_path": "/var/lib/mysql"
   },
   {
-    "path": "/var/lib/postgresql"
+    "file_path": "/var/lib/postgresql"
   },
   {
-    "path": "/usr/local/var/mysql"
+    "file_path": "/usr/local/var/mysql"
   },
   {
-    "path": "/usr/local/var/postgres"
+    "file_path": "/usr/local/var/postgres"
   },
   {
-    "path": "/System/Library"
+    "file_path": "/System/Library"
   },
   {
-    "path": "/usr/libexec"
+    "file_path": "/usr/libexec"
   }
 ]
