@@ -129,27 +129,30 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
+// TODO: Add function to find hash in hashes.json by file_path atrribute and delete that object from the file.
+// This function will be used to remove updated hashes
+// fn delete_hash(hash_file_path: &str, file_path: &str) {}
+
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
             println!("Reading directories... Please don't quit the program until it's complete.");
-            // Read the JSON file
+
             let mut file = File::open(file_path).expect("File not found");
             let mut contents = String::new();
             file.read_to_string(&mut contents).expect("Error reading the file");
 
-            // Parse the JSON data
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
             if let Some(obj) = json_data.as_array(){
-                let _ = fs::remove_file("./data/hashes.json").unwrap_or_default(); // Delete file before writing new hashes to avoid duplicates
+                // let _ = fs::remove_file("./data/hashes.json").unwrap_or_default(); // Delete file before writing new hashes to avoid duplicates
 
                 for i in obj {
 
                     let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                     let the_path = PathBuf::from(line);
 
-                    if let Ok(entries) = std::fs::read_dir(the_path) { // If the directory is found in the user system
+                    if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if directory is traversable, it's found
                         for entry in entries {
                             let entry = entry?;
                             let path = entry.path();
@@ -174,8 +177,23 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 }
                             }
                         }
-                    } else {
-                        println!("{} was not found in this system", i["file_path"]);
+                    } else { // String is a file path instead of a directory path
+                        println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
+                        let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
+                        let hash = hash_file(&_line);
+                        let hash_str: &str = &hash;
+                        let now = Utc::now();
+                        let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+
+                        match write_hash(hash_str, &_line, timestamp) {
+                            Ok(_) => {
+                                // println!("Write Ok");
+                                continue
+                            }
+                            Err(err) => {
+                                eprintln!("Error: {}", err);
+                            }
+                        }
                     }
                 }
             } else {
@@ -235,7 +253,7 @@ fn cli_menu() {
             }
 
         } else if input == "f" {
-            let _ = full_scan("./data/dirs.json");
+            let _ = full_scan("./data/hashes.json");
 
         } else if input == "q" {
             break
