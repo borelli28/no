@@ -152,7 +152,8 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let entry = entry?;
                             let path = entry.path();
                             if path.is_dir() {
-                                println!("path is dir");
+                                // println!("path is dir");
+                                continue
                             } else {
                                 let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
                                 let hash = hash_file(&path);
@@ -162,7 +163,8 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
     
                                 match write_hash(hash_str, &path, timestamp) {
                                     Ok(_) => {
-                                        println!("Ok");
+                                        // println!("Write Ok");
+                                        continue
                                     }
                                     Err(err) => {
                                         eprintln!("Error: {}", err);
@@ -171,7 +173,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             }
                         }
                     } else {
-                        println!("{} was not found in this system", i["path"]);
+                        println!("{} was not found in this system", i["file_path"]);
                     }
                 }
             } else {
