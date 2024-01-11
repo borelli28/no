@@ -132,6 +132,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
+            println!("Reading directories... Please don't quit program until its complete");
             // Read the JSON file
             let mut file = File::open(file_path).expect("File not found");
             let mut contents = String::new();
