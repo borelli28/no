@@ -15,6 +15,50 @@ struct Hashes {
     timestamp: String,
 }
 
+fn gen_dirs_file() -> Result<String, io::Error> {
+    let file = "./data/dirs.json";
+
+    let data = vec![
+        json!({"file_path": "/bin"}),
+        json!({"file_path": "/sbin"}),
+        json!({"file_path": "/usr/bin"}),
+        json!({"file_path": "/usr/sbin"}),
+        json!({"file_path": "/usr/local/bin"}),
+        json!({"file_path": "/usr/local/sbin"}),
+        json!({"file_path": "/lib"}),
+        json!({"file_path": "/lib64"}),
+        json!({"file_path": "/usr/lib"}),
+        json!({"file_path": "/usr/lib64"}),
+        json!({"file_path": "/usr/local/lib"}),
+        json!({"file_path": "/usr/local/lib64"}),
+        json!({"file_path": "/etc"}),
+        json!({"file_path": "/boot"}),
+        json!({"file_path": "/Library"}),
+        json!({"file_path": "/var/log"}),
+        json!({"file_path": "/etc/init.d"}),
+        json!({"file_path": "/etc/launchd.conf"}),
+        json!({"file_path": "/lib/modules"}),
+        json!({"file_path": "/System/Library/Extensions"}),
+        json!({"file_path": "/etc/cron.d"}),
+        json!({"file_path": "/usr/lib/cron/tabs"}),
+        json!({"file_path": "/etc/network"}),
+        json!({"file_path": "/etc/security"}),
+        json!({"file_path": "/etc/ssh"}),
+        json!({"file_path": "/var/www"}),
+        json!({"file_path": "/Library/WebServer/Documents"}),
+        json!({"file_path": "/var/lib/mysql"}),
+        json!({"file_path": "/var/lib/postgresql"}),
+        json!({"file_path": "/usr/local/var/mysql"}),
+        json!({"file_path": "/usr/local/var/postgres"}),
+        json!({"file_path": "/System/Library"}),
+        json!({"file_path": "/usr/libexec"})
+    ];
+
+    let json_data = serde_json::to_string_pretty(&data).unwrap();
+    fs::write(file, json_data).unwrap();
+    Ok(String::from("Ok"))
+}
+
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
     let file = File::open(file_path)?;
     let mut reader = BufReader::new(file);
@@ -227,7 +271,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                         }
                     }
                 } else {
-                    println!("hashes.json not found");
+                    println!("File not found");
                 }
             } else {
                 println!("The parsed JSON is not an object");
@@ -235,7 +279,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             Ok(String::from("Ok"))
         }
         Err(_) => {
-            match create_file(file_path) {
+            match gen_dirs_file() {
                 Ok(_) => {
                     let _ = full_scan(file_path);
                     Ok(String::from("Ok"))
