@@ -105,9 +105,8 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
 // Supports Add File. Adds file path to dirs.json
 fn add_file(file_path: &str) -> Result<String, io::Error> {
-    let dir_path = "./data/dirs.json";
 
-    let mut file = OpenOptions::new().read(true).write(true).open(dir_path)?;
+    let mut file = OpenOptions::new().read(true).write(true).open(file_path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
@@ -122,7 +121,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     }
 
     // Write the modified JSON back to the file
-    let file = File::create(dir_path)?;
+    let file = File::create(file_path)?;
     let writer = BufWriter::new(file);
     serde_json::to_writer_pretty(writer, &data)?;
 
