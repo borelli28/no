@@ -15,7 +15,7 @@ struct Hashes {
     timestamp: String,
 }
 
-fn gen_dirs_file() {
+fn gen_dirs_file() -> Result<String, io::Error> {
     let file = "./data/dirs.json";
 
     let data = vec![
@@ -56,6 +56,7 @@ fn gen_dirs_file() {
 
     let json_data = serde_json::to_string_pretty(&data).unwrap();
     fs::write(file, json_data).unwrap();
+    Ok(String::from("Ok"))
 }
 
 fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
@@ -270,7 +271,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                         }
                     }
                 } else {
-                    println!("hashes.json not found");
+                    println!("File not found");
                 }
             } else {
                 println!("The parsed JSON is not an object");
@@ -278,7 +279,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             Ok(String::from("Ok"))
         }
         Err(_) => {
-            match create_file(file_path) {
+            match gen_dirs_file() {
                 Ok(_) => {
                     let _ = full_scan(file_path);
                     Ok(String::from("Ok"))
