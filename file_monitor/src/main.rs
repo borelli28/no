@@ -129,9 +129,32 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-// TODO: Add function to find hash in hashes.json by file_path atrribute and delete that object from the file.
-// This function will be used to remove updated hashes
-// fn delete_hash(hash_file_path: &str, file_path: &str) {}
+fn delete_hash(hash_file_path: &str, file_path: &str) -> Result<String, io::Error> {
+    let search_for_this_path = hash_file_path;
+
+    let contents = fs::read_to_string(file_path)?;
+
+    // Parse the JSON into a serde_json Value
+    let mut data: Value = serde_json::from_str(&contents).expect("Error parsing JSON");
+
+    // Search for the object and remove it if found
+    if let Some(array) = data.as_array_mut() {
+        array.retain(|obj| {
+            if let Some(path) = obj.get("file_path") {
+                if let Some(path_str) = path.as_str() {
+                    return path_str != search_for_this_path;
+                }
+            }
+            true
+        });
+    }
+
+    // Write the modified JSON back to the file
+    let new_contents = serde_json::to_string_pretty(&data)?;
+    fs::write(file_path, new_contents)?;
+
+    Ok(String::from("Ok"))
+}
 
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
@@ -165,7 +188,10 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 let hash_str: &str = &hash;
                                 let now = Utc::now();
                                 let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-    
+                                
+                                // Delete previous object from file before writing the new object
+                                let _ = delete_hash(&path, file_path);
+
                                 match write_hash(hash_str, &path, timestamp) {
                                     Ok(_) => {
                                         // println!("Write Ok");
@@ -178,12 +204,15 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             }
                         }
                     } else { // String is a file path instead of a directory path
-                        println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
+                        // println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
                         let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                         let hash = hash_file(&_line);
                         let hash_str: &str = &hash;
                         let now = Utc::now();
                         let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+
+                        // Delete previous object from file before writing the new object
+                        let _ = delete_hash(&_line, file_path);
 
                         match write_hash(hash_str, &_line, timestamp) {
                             Ok(_) => {
