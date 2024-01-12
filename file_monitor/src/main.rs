@@ -168,8 +168,6 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
             if let Some(obj) = json_data.as_array(){
-                // let _ = fs::remove_file("./data/hashes.json").unwrap_or_default(); // Delete file before writing new hashes to avoid duplicates
-
                 for i in obj {
 
                     let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
