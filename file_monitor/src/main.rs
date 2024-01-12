@@ -103,31 +103,6 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
     }
 }
 
-// Supports Add File. Adds file path to dirs.json
-fn add_file(file_path: &str) -> Result<String, io::Error> {
-
-    let mut file = OpenOptions::new().read(true).write(true).open(file_path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    // Parse the JSON into a serde_json Value
-    let mut data: Value = serde_json::from_str(&contents)?;
-
-    let new_object = json!({"file_path": file_path});
-
-    // Add the new object to the array
-    if let Some(array) = data.as_array_mut() {
-        array.push(new_object);
-    }
-
-    // Write the modified JSON back to the file
-    let file = File::create(file_path)?;
-    let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &data)?;
-
-    Ok(String::from("Ok"))
-}
-
 fn delete_hash(hash_file_path: &str, file_path: &str) -> Result<String, io::Error> {
     let search_for_this_path = hash_file_path;
 
@@ -151,6 +126,30 @@ fn delete_hash(hash_file_path: &str, file_path: &str) -> Result<String, io::Erro
     // Write the modified JSON back to the file
     let new_contents = serde_json::to_string_pretty(&data)?;
     fs::write(file_path, new_contents)?;
+
+    Ok(String::from("Ok"))
+}
+
+fn add_file(file_path: &str) -> Result<String, io::Error> {
+
+    let mut file = OpenOptions::new().read(true).write(true).open(file_path)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    // Parse the JSON into a serde_json Value
+    let mut data: Value = serde_json::from_str(&contents)?;
+
+    let new_object = json!({"file_path": file_path});
+
+    // Add the new object to the array
+    if let Some(array) = data.as_array_mut() {
+        array.push(new_object);
+    }
+
+    // Write the modified JSON back to the file
+    let file = File::create(file_path)?;
+    let writer = BufWriter::new(file);
+    serde_json::to_writer_pretty(writer, &data)?;
 
     Ok(String::from("Ok"))
 }
