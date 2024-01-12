@@ -62,8 +62,8 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
     match fs::metadata(file_path) {
         Ok(_) => {
             Ok(String::from("Ok"))},
-        Err(err) => {
-            Err(err)
+        Err(_) => {
+            return Err(io::Error::new(io::ErrorKind::Other, "An error occurred -- check_file_exists"));
         }
     }
 }
@@ -103,34 +103,9 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
     }
 }
 
-// Supports Add File. Adds file path to dirs.json
-fn add_file(file_path: &str) -> Result<String, io::Error> {
-    let dir_path = "./data/dirs.json";
-
-    let mut file = OpenOptions::new().read(true).write(true).open(dir_path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    // Parse the JSON into a serde_json Value
-    let mut data: Value = serde_json::from_str(&contents)?;
-
-    let new_object = json!({"file_path": file_path});
-
-    // Add the new object to the array
-    if let Some(array) = data.as_array_mut() {
-        array.push(new_object);
-    }
-
-    // Write the modified JSON back to the file
-    let file = File::create(dir_path)?;
-    let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &data)?;
-
-    Ok(String::from("Ok"))
-}
-
-fn delete_hash(hash_file_path: &str, file_path: &str) -> Result<String, io::Error> {
+fn delete_hash(hash_file_path: &str) -> Result<String, io::Error> {
     let search_for_this_path = hash_file_path;
+    let file_path = "./data/hashes.json";
 
     let contents = fs::read_to_string(file_path)?;
 
@@ -168,71 +143,83 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
             if let Some(obj) = json_data.as_array(){
-                // let _ = fs::remove_file("./data/hashes.json").unwrap_or_default(); // Delete file before writing new hashes to avoid duplicates
+                let obj_length = obj.len();
 
-                for i in obj {
-
-                    let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
-                    let the_path = PathBuf::from(line);
-
-                    if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if directory is traversable, it's found
-                        for entry in entries {
-                            let entry = entry?;
-                            let path = entry.path();
-                            if path.is_dir() {
-                                // println!("path is dir");
-                                continue
-                            } else {
-                                let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
-                                let hash = hash_file(&path);
-                                let hash_str: &str = &hash;
-                                let now = Utc::now();
-                                let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                                
-                                // Delete previous object from file before writing the new object
-                                let _ = delete_hash(&path, file_path);
-
-                                match write_hash(hash_str, &path, timestamp) {
-                                    Ok(_) => {
-                                        // println!("Write Ok");
-                                        continue
-                                    }
-                                    Err(err) => {
-                                        eprintln!("Error: {}", err);
+                if obj_length > 0 {
+                    for i in obj {
+    
+                        let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
+                        let the_path = PathBuf::from(line);
+    
+                        if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if directory is traversable, it's found
+                            for entry in entries {
+                                let entry = entry?;
+                                let path = entry.path();
+                                if path.is_dir() {
+                                    // println!("path is dir");
+                                    continue
+                                } else {
+                                    let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
+                                    let hash = hash_file(&path);
+                                    let hash_str: &str = &hash;
+                                    let now = Utc::now();
+                                    let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+                                    
+                                    // Delete previous object from file before writing the new object
+                                    let _ = delete_hash(&path);
+    
+                                    match write_hash(hash_str, &path, timestamp) {
+                                        Ok(_) => {
+                                            // println!("Write Ok");
+                                            continue
+                                        }
+                                        Err(err) => {
+                                            eprintln!("Error: {}", err);
+                                        }
                                     }
                                 }
                             }
-                        }
-                    } else { // String is a file path instead of a directory path
-                        // println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
-                        let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
-                        let hash = hash_file(&_line);
-                        let hash_str: &str = &hash;
-                        let now = Utc::now();
-                        let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-
-                        // Delete previous object from file before writing the new object
-                        let _ = delete_hash(&_line, file_path);
-
-                        match write_hash(hash_str, &_line, timestamp) {
-                            Ok(_) => {
-                                // println!("Write Ok");
-                                continue
-                            }
-                            Err(err) => {
-                                eprintln!("Error: {}", err);
+                        } else { // String is a file path instead of a directory path
+                            // println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
+                            let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
+                            let hash = hash_file(&_line);
+                            let hash_str: &str = &hash;
+                            let now = Utc::now();
+                            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+    
+                            // Delete previous object from file before writing the new object
+                            let _ = delete_hash(&_line);
+    
+                            match write_hash(hash_str, &_line, timestamp) {
+                                Ok(_) => {
+                                    // println!("Write Ok");
+                                    continue
+                                }
+                                Err(err) => {
+                                    eprintln!("Error: {}", err);
+                                }
                             }
                         }
                     }
+                } else {
+                    println!("hashes.json not found");
                 }
             } else {
                 println!("The parsed JSON is not an object");
             }
             Ok(String::from("Ok"))
         }
-        Err(err) => {
-            Err(err)
-            // No file found.
+        Err(_) => {
+            match create_file(file_path) {
+                Ok(_) => {
+                    let _ = full_scan(file_path);
+                    Ok(String::from("Ok"))
+                }
+                Err(err) => {
+                    eprintln!("{}", err);
+                    return Err(io::Error::new(io::ErrorKind::Other, "An error occurred"));
+                }
+            }
         }
     }
 }
@@ -270,7 +257,6 @@ fn cli_menu() {
                     match write_hash(hash, file, timestamp) {
                         Ok(response) => {
                             println!("\n {} \n", response);
-                            let _ = add_file(file);
                             println!("\n File added! \n");
                         }
                         Err(err) => {
@@ -282,7 +268,7 @@ fn cli_menu() {
             }
 
         } else if input == "f" {
-            let _ = full_scan("./data/hashes.json");
+            let _ = full_scan("./data/dirs.json");
 
         } else if input == "q" {
             break
