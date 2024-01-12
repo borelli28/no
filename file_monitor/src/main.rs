@@ -62,8 +62,8 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
     match fs::metadata(file_path) {
         Ok(_) => {
             Ok(String::from("Ok"))},
-        Err(err) => {
-            Err(err)
+        Err(_) => {
+            return Err(io::Error::new(io::ErrorKind::Other, "An error occurred -- check_file_exists"));
         }
     }
 }
@@ -168,69 +168,83 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
             if let Some(obj) = json_data.as_array(){
-                for i in obj {
+                let obj_length = obj.len();
 
-                    let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
-                    let the_path = PathBuf::from(line);
-
-                    if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if directory is traversable, it's found
-                        for entry in entries {
-                            let entry = entry?;
-                            let path = entry.path();
-                            if path.is_dir() {
-                                // println!("path is dir");
-                                continue
-                            } else {
-                                let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
-                                let hash = hash_file(&path);
-                                let hash_str: &str = &hash;
-                                let now = Utc::now();
-                                let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                                
-                                // Delete previous object from file before writing the new object
-                                let _ = delete_hash(&path, file_path);
-
-                                match write_hash(hash_str, &path, timestamp) {
-                                    Ok(_) => {
-                                        // println!("Write Ok");
-                                        continue
-                                    }
-                                    Err(err) => {
-                                        eprintln!("Error: {}", err);
+                if obj_length > 0 {
+                    for i in obj {
+    
+                        let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
+                        let the_path = PathBuf::from(line);
+    
+                        if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if directory is traversable, it's found
+                            for entry in entries {
+                                let entry = entry?;
+                                let path = entry.path();
+                                if path.is_dir() {
+                                    // println!("path is dir");
+                                    continue
+                                } else {
+                                    let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
+                                    let hash = hash_file(&path);
+                                    let hash_str: &str = &hash;
+                                    let now = Utc::now();
+                                    let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+                                    
+                                    // Delete previous object from file before writing the new object
+                                    let _ = delete_hash(&path, file_path);
+    
+                                    match write_hash(hash_str, &path, timestamp) {
+                                        Ok(_) => {
+                                            // println!("Write Ok");
+                                            continue
+                                        }
+                                        Err(err) => {
+                                            eprintln!("Error: {}", err);
+                                        }
                                     }
                                 }
                             }
-                        }
-                    } else { // String is a file path instead of a directory path
-                        // println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
-                        let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
-                        let hash = hash_file(&_line);
-                        let hash_str: &str = &hash;
-                        let now = Utc::now();
-                        let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-
-                        // Delete previous object from file before writing the new object
-                        let _ = delete_hash(&_line, file_path);
-
-                        match write_hash(hash_str, &_line, timestamp) {
-                            Ok(_) => {
-                                // println!("Write Ok");
-                                continue
+                        } else { // String is a file path instead of a directory path
+                            // println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
+                            let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
+                            let hash = hash_file(&_line);
+                            let hash_str: &str = &hash;
+                            let now = Utc::now();
+                            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+    
+                            // Delete previous object from file before writing the new object
+                            let _ = delete_hash(&_line, file_path);
+    
+                            match write_hash(hash_str, &_line, timestamp) {
+                                Ok(_) => {
+                                    // println!("Write Ok");
+                                    continue
+                                }
+                                Err(err) => {
+                                    eprintln!("Error: {}", err);
+                                }
                             }
-                            Err(err) => {
-                                eprintln!("Error: {}", err);
-                            }
                         }
-                    }
+                    } println!("Positivity its good");
+                } else {
+                    println!("hashes.json not found");
                 }
             } else {
                 println!("The parsed JSON is not an object");
             }
             Ok(String::from("Ok"))
         }
-        Err(err) => {
-            Err(err)
-            // No file found.
+        Err(_) => {
+            match create_file(file_path) {
+                Ok(_) => {
+                    let _ = full_scan(file_path);
+                    Ok(String::from("Ok"))
+                }
+                Err(err) => {
+                    eprintln!("{}", err);
+                    return Err(io::Error::new(io::ErrorKind::Other, "An error occurred"));
+                }
+            }
         }
     }
 }
