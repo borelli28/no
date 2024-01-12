@@ -13,7 +13,7 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-# Where the hashes are stored
-hashes.json
+data/
+dirs.json
 
 test.txt
