@@ -103,8 +103,9 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
     }
 }
 
-fn delete_hash(hash_file_path: &str, file_path: &str) -> Result<String, io::Error> {
+fn delete_hash(hash_file_path: &str) -> Result<String, io::Error> {
     let search_for_this_path = hash_file_path;
+    let file_path = "./data/hashes.json";
 
     let contents = fs::read_to_string(file_path)?;
 
@@ -165,7 +166,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
                                     
                                     // Delete previous object from file before writing the new object
-                                    let _ = delete_hash(&path, file_path);
+                                    let _ = delete_hash(&path);
     
                                     match write_hash(hash_str, &path, timestamp) {
                                         Ok(_) => {
@@ -187,7 +188,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
     
                             // Delete previous object from file before writing the new object
-                            let _ = delete_hash(&_line, file_path);
+                            let _ = delete_hash(&_line);
     
                             match write_hash(hash_str, &_line, timestamp) {
                                 Ok(_) => {
@@ -267,7 +268,7 @@ fn cli_menu() {
             }
 
         } else if input == "f" {
-            let _ = full_scan("./data/hashes.json");
+            let _ = full_scan("./data/dirs.json");
 
         } else if input == "q" {
             break
