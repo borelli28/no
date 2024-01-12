@@ -14,5 +14,6 @@ Cargo.lock
 *.pdb
 
 data/
+dirs.json
 
 test.txt
