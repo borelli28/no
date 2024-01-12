@@ -130,30 +130,6 @@ fn delete_hash(hash_file_path: &str, file_path: &str) -> Result<String, io::Erro
     Ok(String::from("Ok"))
 }
 
-fn add_file(file_path: &str) -> Result<String, io::Error> {
-
-    let mut file = OpenOptions::new().read(true).write(true).open(file_path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-
-    // Parse the JSON into a serde_json Value
-    let mut data: Value = serde_json::from_str(&contents)?;
-
-    let new_object = json!({"file_path": file_path});
-
-    // Add the new object to the array
-    if let Some(array) = data.as_array_mut() {
-        array.push(new_object);
-    }
-
-    // Write the modified JSON back to the file
-    let file = File::create(file_path)?;
-    let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &data)?;
-
-    Ok(String::from("Ok"))
-}
-
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
@@ -280,7 +256,6 @@ fn cli_menu() {
                     match write_hash(hash, file, timestamp) {
                         Ok(response) => {
                             println!("\n {} \n", response);
-                            let _ = add_file(file);
                             println!("\n File added! \n");
                         }
                         Err(err) => {
