@@ -199,7 +199,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 }
                             }
                         }
-                    } println!("Positivity its good");
+                    }
                 } else {
                     println!("hashes.json not found");
                 }
