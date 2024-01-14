@@ -90,6 +90,29 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
+fn get_hash(hash: &str) -> Result<String, std::io::Error> {
+    let contents = fs::read_to_string("./data/hashes.json")?;
+
+    // Parse the JSON into a serde_json Value
+    let data: Value = serde_json::from_str(&contents)?;
+
+    // Search for the object
+    if let Some(array) = data.as_array() {
+        for obj in array {
+            if let Some(path) = obj.get("hash") {
+                if let Some(obj_hash) = path.as_str() {
+                    if obj_hash == hash {
+                        // println!("obj_hash == hash, {}", obj_hash);
+                        return Ok(obj.to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Hash not found"))
+}
+
 fn create_file(file_path: &str) -> Result<String, io::Error> {
     let empty_array: Vec<Hashes> = Vec::new(); // Create an empty Vec of Hashes
     let json_string = serde_json::to_string(&empty_array)?; // Serialize the empty array to a JSON string
@@ -299,9 +322,29 @@ fn clear_data() -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
+fn compare_hash(hash: &str) -> Result<String, io::Error> {
+    let response_str = get_hash(&hash).map_err(|_| {
+        io::Error::new(io::ErrorKind::Other, format!("Hash mismatch"))
+    })?;
+
+    // Parse the JSON response into a serde_json Value
+    let response_json: Value = serde_json::from_str(&response_str)?;
+
+    // Access the "hash" field of the JSON object and compare with the provided hash
+    if let Some(hash_value) = response_json.get("hash") {
+        if let Some(hash_str) = hash_value.as_str() {
+            if hash_str == hash {
+                return Ok(String::from("No changes"));
+            }
+        }
+    }
+
+    Err(io::Error::new(io::ErrorKind::Other, "Hash mismatch"))
+}
+
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [F] Full Scan, [C] Clear Data, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [C] Clear Data, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -341,6 +384,20 @@ fn cli_menu() {
                     }
                 }
                 Err(err) => eprintln!("{}", err),
+            }
+
+        }  else if input == "h" {
+            println!("\n Enter file path: ");
+            let mut file = String::new();
+            io::stdin().read_line(&mut file).expect("Failed to read line");
+            let file: &str = file.trim();
+
+            let hash = hash_file(file);
+            let hash: &str = &hash;
+
+            match compare_hash(hash) {
+                Ok(response) => println!("{}", response),
+                Err(err) => println!("{}", err),
             }
 
         } else if input == "f" {
