@@ -323,7 +323,9 @@ fn clear_data() -> Result<String, io::Error> {
 }
 
 fn compare_hash(hash: &str) -> Result<String, io::Error> {
-    let response_str = get_hash(&hash)?; // Assuming get_hash returns a string
+    let response_str = get_hash(&hash).map_err(|_| {
+        io::Error::new(io::ErrorKind::Other, format!("Hash mismatch"))
+    })?;
 
     // Parse the JSON response into a serde_json Value
     let response_json: Value = serde_json::from_str(&response_str)?;
@@ -395,7 +397,7 @@ fn cli_menu() {
 
             match compare_hash(hash) {
                 Ok(response) => println!("{}", response),
-                Err(err) => println!("Error: {}", err),
+                Err(err) => println!("{}", err),
             }
 
         } else if input == "f" {
