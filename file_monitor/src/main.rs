@@ -293,9 +293,15 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
     }
 }
 
+fn clear_data() -> Result<String, io::Error> {
+    fs::remove_file("./data/dirs.json")?;
+    fs::remove_file("./data/hashes.json")?;
+    Ok(String::from("Ok"))
+}
+
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [F] Full Scan, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [F] Full Scan, [C] Clear Data, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -339,6 +345,9 @@ fn cli_menu() {
 
         } else if input == "f" {
             let _ = full_scan("./data/dirs.json");
+
+        } else if input == "c" {
+            let _ = clear_data();
 
         } else if input == "q" {
             break
