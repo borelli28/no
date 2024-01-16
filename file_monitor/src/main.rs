@@ -136,10 +136,10 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
-    let hashes_file = "./data/hashes.json";
-    match check_file_exists(hashes_file) {
+    let alerts_file = "./data/hashes.json";
+    match check_file_exists(alerts_file) {
         Ok(_) => {
-            let mut hashes: Vec<Hashes> = match fs::read_to_string(hashes_file) {
+            let mut hashes: Vec<Hashes> = match fs::read_to_string(alerts_file) {
                 Ok(content) => {
                     serde_json::from_str(&content).unwrap_or(Vec::new()) // Parse the existing content into a Vec<Hashes>
                 },
@@ -154,12 +154,12 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
             hashes.push(new_hash);
             let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
-            fs::write(hashes_file, json_string)?; // Write the updated JSON string back to the file
+            fs::write(alerts_file, json_string)?; // Write the updated JSON string back to the file
 
             Ok(String::from("Added to hashes.json"))
         }
         Err(_err) => {
-            match create_file(hashes_file) {
+            match create_file(alerts_file) {
                 Ok(_) => {
                     let _ = write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
@@ -221,6 +221,40 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     serde_json::to_writer_pretty(writer, &data)?;
 
     Ok(String::from("Ok"))
+}
+
+// 
+fn gen_alert(file_path: &str, hash: &str, new_hash: &str) -> Result<String, io::Error> {
+    let alerts_file = "./data/alerts.json";
+    match check_file_exists(alerts_file) {
+        Ok(_) => {
+            let note: &str = &format!("Change detected in {} since the last scan of the file", file_path);
+            let now = Utc::now();
+            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+
+            let new_alert = json! ({
+                file_path: file_path.to_string(),
+                note: note.to_string(),
+                hash: hash.to_string(),
+                new_hash: new_hash.to_string(),
+                timestamp: timestamp.to_string(),
+            });
+
+            let json_string = serde_json::to_string_pretty(&new_alert)?; // Serialize the Vec back to a JSON string
+            fs::write(alerts_file, json_string).unwrap();
+
+            Ok(String::from("Ok"))
+        }
+        Err(_err) => {
+            match create_file(alerts_file) {
+                Ok(_) => {
+                    let _ = gen_alert(file_path, hash, new_hash);
+                    Ok(String::from("Ok"))
+                },
+                Err(err) => Err(err),
+            }
+        }
+    }
 }
 
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
