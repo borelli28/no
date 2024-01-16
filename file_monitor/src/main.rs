@@ -257,6 +257,11 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let now = Utc::now();
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
                                     
+                                    // Check for hash mismatch
+                                    // let _ = compare_hash();
+                                    // If there is a mismatch generate alert
+                                    // let _ = gen_alert();
+
                                     // Delete previous object from file before writing the new object
                                     let _ = delete_hash(&path);
     
@@ -278,6 +283,11 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let hash_str: &str = &hash;
                             let now = Utc::now();
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+
+                            // Check for hash mismatch
+                            // let _ = compare_hash();
+                            // If there is a mismatch generate alert
+                            // let _ = gen_alert();
     
                             // Delete previous object from file before writing the new object
                             let _ = delete_hash(&_line);
