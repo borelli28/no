@@ -306,7 +306,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     
                                     // Check for hash mismatch
                                     if !hash_mismatch_checker(&hash_str) {
-                                        let _ = gen_alert(&_line);
+                                        let _ = gen_alert(&path);
                                     }
     
                                     match write_hash(hash_str, &path, timestamp) {
