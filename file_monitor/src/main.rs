@@ -383,10 +383,8 @@ fn clear_data() -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn hash_mismatch_checker(hash: &str) -> Bool {
-    let response_str = get_hash(&hash).map_err(|_| {
-        io::Error::new(io::ErrorKind::Other, format!("Hash mismatch"))
-    })?;
+fn hash_mismatch_checker(hash: &str) -> bool {
+    let response_str = get_hash(&hash);
 
     // Parse the JSON response into a serde_json Value
     let response_json: Value = serde_json::from_str(&response_str)?;
@@ -395,12 +393,14 @@ fn hash_mismatch_checker(hash: &str) -> Bool {
     if let Some(hash_value) = response_json.get("hash") {
         if let Some(hash_str) = hash_value.as_str() {
             if hash_str == hash {
-                return Ok(String::from("No changes"));
+                return true;
+            } else {
+                return false;
             }
+        } else {
+            return false;
         }
     }
-
-    Err(io::Error::new(io::ErrorKind::Other, "Hash mismatch"))
 }
 
 fn cli_menu() {
