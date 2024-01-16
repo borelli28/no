@@ -234,7 +234,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
-            if let Some(obj) = json_data.as_array(){
+            if let Some(obj) = json_data.as_array() {
                 let obj_length = obj.len();
 
                 if obj_length > 0 {
