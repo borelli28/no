@@ -223,35 +223,40 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-// 
 fn gen_alert(file_path: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
-    match check_file_exists(alerts_file) {
+    let _ = remove_file(alerts_file);
+    match create_file(alerts_file) {
         Ok(_) => {
             let note: &str = &format!("Change detected in {} since the last scan of the file", file_path);
-            let now = Utc::now();
+            let now = chrono::Utc::now();
             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-
-            let new_alert = json! ({
-                "file_path": file_path.to_string(),
-                "note": note.to_string(),
-                "timestamp": timestamp.to_string(),
+        
+            let existing_json = if let Ok(contents) = fs::read_to_string(alerts_file) {
+                serde_json::from_str(&contents).unwrap_or(json!({}))
+            } else {
+                json!({})
+            };
+        
+            let new_alert = json!({
+                "file_path": file_path,
+                "note": note,
+                "timestamp": timestamp,
             });
-
-            let json_string = serde_json::to_string_pretty(&new_alert)?;
-            fs::write(alerts_file, json_string).unwrap();
-
+        
+            let mut alerts_array = match existing_json {
+                Value::Array(arr) => arr,
+                _ => vec![existing_json],
+            };
+        
+            alerts_array.push(new_alert);
+            let updated_json = serde_json::to_string_pretty(&alerts_array)?;
+        
+            fs::write(alerts_file, updated_json)?;
+        
             Ok(String::from("Ok"))
         }
-        Err(_err) => {
-            match create_file(alerts_file) {
-                Ok(_) => {
-                    let _ = gen_alert(file_path);
-                    Ok(String::from("Ok"))
-                },
-                Err(err) => Err(err),
-            }
-        }
+        Err(_err) => { eprintln!("{}", _err); }
     }
 }
 
@@ -367,6 +372,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 fn clear_data() -> Result<String, io::Error> {
     fs::remove_file("./data/dirs.json")?;
     fs::remove_file("./data/hashes.json")?;
+    fs::remove_file("./data/alerts.json")?;
     Ok(String::from("Ok"))
 }
 
