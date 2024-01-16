@@ -225,8 +225,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
 
 fn gen_alert(file_path: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
-    let _ = remove_file(alerts_file);
-    match create_file(alerts_file) {
+    match check_file_exists(alerts_file) {
         Ok(_) => {
             let note: &str = &format!("Change detected in {} since the last scan of the file", file_path);
             let now = chrono::Utc::now();
@@ -256,7 +255,15 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
         
             Ok(String::from("Ok"))
         }
-        Err(_err) => { eprintln!("{}", _err); }
+        Err(_err) => {
+            match create_file(alerts_file) {
+                Ok(_) => {
+                    let _ = gen_alert(file_path);
+                    Ok(String::from("Ok"))
+                },
+                Err(err) => Err(err),
+            }
+        }
     }
 }
 
