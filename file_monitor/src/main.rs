@@ -233,9 +233,9 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
             let new_alert = json! ({
-                file_path: file_path.to_string(),
-                note: note.to_string(),
-                timestamp: timestamp.to_string(),
+                "file_path": file_path.to_string(),
+                "note": note.to_string(),
+                "timestamp": timestamp.to_string(),
             });
 
             let json_string = serde_json::to_string_pretty(&new_alert)?;
