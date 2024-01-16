@@ -224,7 +224,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
 }
 
 // 
-fn gen_alert(file_path: &str, hash: &str, new_hash: &str) -> Result<String, io::Error> {
+fn gen_alert(file_path: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
@@ -235,12 +235,10 @@ fn gen_alert(file_path: &str, hash: &str, new_hash: &str) -> Result<String, io::
             let new_alert = json! ({
                 file_path: file_path.to_string(),
                 note: note.to_string(),
-                hash: hash.to_string(),
-                new_hash: new_hash.to_string(),
                 timestamp: timestamp.to_string(),
             });
 
-            let json_string = serde_json::to_string_pretty(&new_alert)?; // Serialize the Vec back to a JSON string
+            let json_string = serde_json::to_string_pretty(&new_alert)?;
             fs::write(alerts_file, json_string).unwrap();
 
             Ok(String::from("Ok"))
@@ -248,7 +246,7 @@ fn gen_alert(file_path: &str, hash: &str, new_hash: &str) -> Result<String, io::
         Err(_err) => {
             match create_file(alerts_file) {
                 Ok(_) => {
-                    let _ = gen_alert(file_path, hash, new_hash);
+                    let _ = gen_alert(file_path);
                     Ok(String::from("Ok"))
                 },
                 Err(err) => Err(err),
