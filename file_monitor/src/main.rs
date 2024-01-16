@@ -305,11 +305,8 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let _ = delete_hash(&path);
                                     
                                     // Check for hash mismatch
-                                    match hash_mismatch_checker(&hash_str) {
-                                        Ok(_) => {
-                                            let _ = gen_alert(&path);
-                                        }
-                                        Err(err) => println!("{}", err),
+                                    if !hash_mismatch_checker(&hash_str) {
+                                        let _ = gen_alert(&_line);
                                     }
     
                                     match write_hash(hash_str, &path, timestamp) {
@@ -332,11 +329,8 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
                             // Check for hash mismatch
-                            match hash_mismatch_checker(&hash_str) {
-                                Ok(_) => {
-                                    let _ = gen_alert(&_line);
-                                }
-                                Err(err) => println!("{}", err),
+                            if !hash_mismatch_checker(&hash_str) {
+                                let _ = gen_alert(&_line);
                             }
     
                             // Delete previous object from file before writing the new object
@@ -387,7 +381,7 @@ fn hash_mismatch_checker(hash: &str) -> bool {
     let response_str = get_hash(&hash);
 
     // Parse the JSON response into a serde_json Value
-    let response_json: Value = serde_json::from_str(&response_str)?;
+    let response_json: Value = serde_json::from_str(&response_str).unwrap();
 
     // Access the "hash" field of the JSON object and compare with the provided hash
     if let Some(hash_value) = response_json.get("hash") {
@@ -400,6 +394,9 @@ fn hash_mismatch_checker(hash: &str) -> bool {
         } else {
             return false;
         }
+    } else {
+        eprintln!("Could not access response_json in hash_mismatch_checker");
+        return false;
     }
 }
 
@@ -456,9 +453,8 @@ fn cli_menu() {
             let hash = hash_file(file);
             let hash: &str = &hash;
 
-            match hash_mismatch_checker(hash) {
-                Ok(response) => println!("{}", response),
-                Err(err) => println!("{}", err),
+            if !hash_mismatch_checker(hash) {
+                println!("Hash mismatch found");
             }
 
         } else if input == "f" {
