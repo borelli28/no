@@ -305,7 +305,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let _ = delete_hash(&path);
                                     
                                     // Check for hash mismatch
-                                    match compare_hash(&hash_str) {
+                                    match hash_mismatch_checker(&hash_str) {
                                         Ok(_) => {
                                             let _ = gen_alert(&path);
                                         }
@@ -332,7 +332,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
                             // Check for hash mismatch
-                            match compare_hash(&hash_str) {
+                            match hash_mismatch_checker(&hash_str) {
                                 Ok(_) => {
                                     let _ = gen_alert(&_line);
                                 }
@@ -383,7 +383,7 @@ fn clear_data() -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn compare_hash(hash: &str) -> Result<String, io::Error> {
+fn hash_mismatch_checker(hash: &str) -> Bool {
     let response_str = get_hash(&hash).map_err(|_| {
         io::Error::new(io::ErrorKind::Other, format!("Hash mismatch"))
     })?;
@@ -456,7 +456,7 @@ fn cli_menu() {
             let hash = hash_file(file);
             let hash: &str = &hash;
 
-            match compare_hash(hash) {
+            match hash_mismatch_checker(hash) {
                 Ok(response) => println!("{}", response),
                 Err(err) => println!("{}", err),
             }
