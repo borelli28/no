@@ -136,10 +136,10 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
-    let hashes_file = "./data/hashes.json";
-    match check_file_exists(hashes_file) {
+    let alerts_file = "./data/hashes.json";
+    match check_file_exists(alerts_file) {
         Ok(_) => {
-            let mut hashes: Vec<Hashes> = match fs::read_to_string(hashes_file) {
+            let mut hashes: Vec<Hashes> = match fs::read_to_string(alerts_file) {
                 Ok(content) => {
                     serde_json::from_str(&content).unwrap_or(Vec::new()) // Parse the existing content into a Vec<Hashes>
                 },
@@ -154,12 +154,12 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
             hashes.push(new_hash);
             let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
-            fs::write(hashes_file, json_string)?; // Write the updated JSON string back to the file
+            fs::write(alerts_file, json_string)?; // Write the updated JSON string back to the file
 
             Ok(String::from("Added to hashes.json"))
         }
         Err(_err) => {
-            match create_file(hashes_file) {
+            match create_file(alerts_file) {
                 Ok(_) => {
                     let _ = write_hash(hash, file_path, creation_timestamp);
                     Ok(String::from("Ok"))
@@ -223,6 +223,86 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
+fn gen_alert(file_path: &str) -> Result<String, io::Error> {
+    let alerts_file = "./data/alerts.json";
+    match check_file_exists(alerts_file) {
+        Ok(_) => {
+            let note: &str = &format!("Change detected in {} since the last scan of the file", file_path);
+            let now = chrono::Utc::now();
+            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+        
+            let existing_json = if let Ok(contents) = fs::read_to_string(alerts_file) {
+                serde_json::from_str(&contents).unwrap_or(json!({}))
+            } else {
+                json!({})
+            };
+        
+            let new_alert = json!({
+                "file_path": file_path,
+                "note": note,
+                "timestamp": timestamp,
+            });
+        
+            let mut alerts_array = match existing_json {
+                Value::Array(arr) => arr,
+                _ => vec![existing_json],
+            };
+        
+            alerts_array.push(new_alert);
+            let updated_json = serde_json::to_string_pretty(&alerts_array)?;
+        
+            fs::write(alerts_file, updated_json)?;
+        
+            Ok(String::from("Ok"))
+        }
+        Err(_err) => {
+            match create_file(alerts_file) {
+                Ok(_) => {
+                    let _ = gen_alert(file_path);
+                    Ok(String::from("Ok"))
+                },
+                Err(err) => Err(err),
+            }
+        }
+    }
+}
+
+fn clear_data() -> Result<String, io::Error> {
+    fs::remove_file("./data/dirs.json")?;
+    fs::remove_file("./data/hashes.json")?;
+    fs::remove_file("./data/alerts.json")?;
+    Ok(String::from("Ok"))
+}
+
+fn hash_mismatch_checker(hash: &str) -> bool {
+    match get_hash(&hash) {
+        Ok(response) => {
+            // Parse the JSON response into a serde_json Value
+            let response_json: Value = serde_json::from_str(&response).expect("Error parsing response_str");
+
+            // Access the "hash" field of the JSON object and compare with the provided hash
+            if let Some(hash_value) = response_json.get("hash") {
+                if let Some(hash_str) = hash_value.as_str() {
+                    if hash_str == hash {
+                        // println!("{} == {} ?", hash_str, hash);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return true;
+                }
+            } else {
+                eprintln!("Could not access response_json in hash_mismatch_checker");
+                return true;
+            }
+        }
+        Err(_) => {   // Hash not found, returned by get_hash()
+            return false;
+        }
+    }
+}
+
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
@@ -234,7 +314,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
             let json_data: serde_json::Value = serde_json::from_str(&contents).expect("Error parsing JSON");
 
-            if let Some(obj) = json_data.as_array(){
+            if let Some(obj) = json_data.as_array() {
                 let obj_length = obj.len();
 
                 if obj_length > 0 {
@@ -257,6 +337,11 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let now = Utc::now();
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
                                     
+                                    // Check for hash mismatch
+                                    if !hash_mismatch_checker(&hash_str) {
+                                        let _ = gen_alert(&path);
+                                    }
+
                                     // Delete previous object from file before writing the new object
                                     let _ = delete_hash(&path);
     
@@ -278,6 +363,11 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let hash_str: &str = &hash;
                             let now = Utc::now();
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+
+                            // Check for hash mismatch
+                            if !hash_mismatch_checker(&hash_str) {
+                                let _ = gen_alert(&_line);
+                            }
     
                             // Delete previous object from file before writing the new object
                             let _ = delete_hash(&_line);
@@ -314,32 +404,6 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
             }
         }
     }
-}
-
-fn clear_data() -> Result<String, io::Error> {
-    fs::remove_file("./data/dirs.json")?;
-    fs::remove_file("./data/hashes.json")?;
-    Ok(String::from("Ok"))
-}
-
-fn compare_hash(hash: &str) -> Result<String, io::Error> {
-    let response_str = get_hash(&hash).map_err(|_| {
-        io::Error::new(io::ErrorKind::Other, format!("Hash mismatch"))
-    })?;
-
-    // Parse the JSON response into a serde_json Value
-    let response_json: Value = serde_json::from_str(&response_str)?;
-
-    // Access the "hash" field of the JSON object and compare with the provided hash
-    if let Some(hash_value) = response_json.get("hash") {
-        if let Some(hash_str) = hash_value.as_str() {
-            if hash_str == hash {
-                return Ok(String::from("No changes"));
-            }
-        }
-    }
-
-    Err(io::Error::new(io::ErrorKind::Other, "Hash mismatch"))
 }
 
 fn cli_menu() {
@@ -395,9 +459,8 @@ fn cli_menu() {
             let hash = hash_file(file);
             let hash: &str = &hash;
 
-            match compare_hash(hash) {
-                Ok(response) => println!("{}", response),
-                Err(err) => println!("{}", err),
+            if !hash_mismatch_checker(hash) {
+                println!("Hash mismatch found");
             }
 
         } else if input == "f" {
