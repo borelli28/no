@@ -267,6 +267,42 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
     }
 }
 
+fn clear_data() -> Result<String, io::Error> {
+    fs::remove_file("./data/dirs.json")?;
+    fs::remove_file("./data/hashes.json")?;
+    fs::remove_file("./data/alerts.json")?;
+    Ok(String::from("Ok"))
+}
+
+fn hash_mismatch_checker(hash: &str) -> bool {
+    match get_hash(&hash) {
+        Ok(response) => {
+            // Parse the JSON response into a serde_json Value
+            let response_json: Value = serde_json::from_str(&response).expect("Error parsing response_str");
+
+            // Access the "hash" field of the JSON object and compare with the provided hash
+            if let Some(hash_value) = response_json.get("hash") {
+                if let Some(hash_str) = hash_value.as_str() {
+                    if hash_str == hash {
+                        // println!("{} == {} ?", hash_str, hash);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return true;
+                }
+            } else {
+                eprintln!("Could not access response_json in hash_mismatch_checker");
+                return true;
+            }
+        }
+        Err(_) => {   // Hash not found, returned by get_hash()
+            return false;
+        }
+    }
+}
+
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
@@ -366,42 +402,6 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                     return Err(io::Error::new(io::ErrorKind::Other, "An error occurred"));
                 }
             }
-        }
-    }
-}
-
-fn clear_data() -> Result<String, io::Error> {
-    fs::remove_file("./data/dirs.json")?;
-    fs::remove_file("./data/hashes.json")?;
-    fs::remove_file("./data/alerts.json")?;
-    Ok(String::from("Ok"))
-}
-
-fn hash_mismatch_checker(hash: &str) -> bool {
-    match get_hash(&hash) {
-        Ok(response) => {
-            // Parse the JSON response into a serde_json Value
-            let response_json: Value = serde_json::from_str(&response).expect("Error parsing response_str");
-
-            // Access the "hash" field of the JSON object and compare with the provided hash
-            if let Some(hash_value) = response_json.get("hash") {
-                if let Some(hash_str) = hash_value.as_str() {
-                    if hash_str == hash {
-                        // println!("{} == {} ?", hash_str, hash);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                } else {
-                    return true;
-                }
-            } else {
-                eprintln!("Could not access response_json in hash_mismatch_checker");
-                return true;
-            }
-        }
-        Err(_) => {   // Hash not found, returned by get_hash()
-            return false;
         }
     }
 }
