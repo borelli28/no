@@ -400,7 +400,7 @@ fn hash_mismatch_checker(hash: &str) -> bool {
                 return true;
             }
         }
-        Err(err) => {   // Hash not found, returned by get_hash()
+        Err(_) => {   // Hash not found, returned by get_hash()
             return false;
         }
     }
