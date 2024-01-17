@@ -300,14 +300,14 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let hash_str: &str = &hash;
                                     let now = Utc::now();
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-
-                                    // Delete previous object from file before writing the new object
-                                    let _ = delete_hash(&path);
                                     
                                     // Check for hash mismatch
                                     if !hash_mismatch_checker(&hash_str) {
                                         let _ = gen_alert(&path);
                                     }
+
+                                    // Delete previous object from file before writing the new object
+                                    let _ = delete_hash(&path);
     
                                     match write_hash(hash_str, &path, timestamp) {
                                         Ok(_) => {
@@ -378,25 +378,31 @@ fn clear_data() -> Result<String, io::Error> {
 }
 
 fn hash_mismatch_checker(hash: &str) -> bool {
-    let response_str = get_hash(&hash);
+    match get_hash(&hash) {
+        Ok(response) => {
+            // Parse the JSON response into a serde_json Value
+            let response_json: Value = serde_json::from_str(&response).expect("Error parsing response_str");
 
-    // Parse the JSON response into a serde_json Value
-    let response_json: Value = serde_json::from_str(&response_str).unwrap();
-
-    // Access the "hash" field of the JSON object and compare with the provided hash
-    if let Some(hash_value) = response_json.get("hash") {
-        if let Some(hash_str) = hash_value.as_str() {
-            if hash_str == hash {
-                return true;
+            // Access the "hash" field of the JSON object and compare with the provided hash
+            if let Some(hash_value) = response_json.get("hash") {
+                if let Some(hash_str) = hash_value.as_str() {
+                    if hash_str == hash {
+                        // println!("{} == {} ?", hash_str, hash);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return true;
+                }
             } else {
-                return false;
+                eprintln!("Could not access response_json in hash_mismatch_checker");
+                return true;
             }
-        } else {
+        }
+        Err(err) => {   // Hash not found, returned by get_hash()
             return false;
         }
-    } else {
-        eprintln!("Could not access response_json in hash_mismatch_checker");
-        return false;
     }
 }
 
