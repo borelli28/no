@@ -91,7 +91,7 @@ fn hash_file(file_path: &str) -> String {
 }
 
 fn get_hash(hash: &str) -> Result<String, std::io::Error> {
-    let contents = fs::read_to_string("./data/hashes.json")?;
+    let contents = fs::read_to_string("./data/baseline.json")?;
 
     // Parse the JSON into a serde_json Value
     let data: Value = serde_json::from_str(&contents)?;
@@ -136,7 +136,7 @@ fn check_file_exists(file_path: &str) -> Result<String, io::Error> {
 }
 
 fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<String, io::Error> {
-    let alerts_file = "./data/hashes.json";
+    let alerts_file = "./data/baseline.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
             let mut hashes: Vec<Hashes> = match fs::read_to_string(alerts_file) {
@@ -156,7 +156,7 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
             let json_string = serde_json::to_string_pretty(&hashes)?; // Serialize the Vec back to a JSON string
             fs::write(alerts_file, json_string)?; // Write the updated JSON string back to the file
 
-            Ok(String::from("Added to hashes.json"))
+            Ok(String::from("Added to baseline.json"))
         }
         Err(_err) => {
             match create_file(alerts_file) {
@@ -172,7 +172,7 @@ fn write_hash(hash: &str, file_path: &str, creation_timestamp: &str) -> Result<S
 
 fn delete_hash(hash_file_path: &str) -> Result<String, io::Error> {
     let search_for_this_path = hash_file_path;
-    let file_path = "./data/hashes.json";
+    let file_path = "./data/baseline.json";
 
     let contents = fs::read_to_string(file_path)?;
 
@@ -269,7 +269,7 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
 
 fn clear_data() -> Result<String, io::Error> {
     fs::remove_file("./data/dirs.json")?;
-    fs::remove_file("./data/hashes.json")?;
+    fs::remove_file("./data/baseline.json")?;
     fs::remove_file("./data/alerts.json")?;
     Ok(String::from("Ok"))
 }
