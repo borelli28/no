@@ -306,22 +306,31 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
     }
 }
 
-fn test() -> NotifyResult<()> {
-    // Create a new watcher with the recommended implementation for the platform
-    let mut result = recommended_watcher(move |res| {
+fn monitor() -> NotifyResult<()> {
+    // Create a multi-producer, single-consumer channel for sending file system events
+    let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
+
+    // Set up a file system watcher using the recommended implementation for the platform
+    let mut watcher = recommended_watcher(move |res| {
         match res {
             Ok(event) => println!("event: {:?}", event),
             Err(e) => println!("watch error: {:?}", e),
         }
-    });
+    })?;
 
-    // Handle the Result to access the FsEventWatcher
-    if let Ok(mut watcher) = result {
-        // Add a path to be watched. All files and directories at that path and below will be monitored for changes.
-        watcher.watch(Path::new("."), RecursiveMode::Recursive)?;
+    watcher.watch(Path::new("."), RecursiveMode::Recursive)?;
+
+    loop {
+        // Receive and process the next file system event from the channel
+        match rx.recv() {
+            Ok(event) => {
+                println!("{:?}", event);
+            }
+            Err(err) => {
+                eprintln!("{:?}", err);
+            }
+        }
     }
-
-    Ok(())
 }
 
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
