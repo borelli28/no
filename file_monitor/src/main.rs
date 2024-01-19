@@ -438,7 +438,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [C] Clear Data, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [M] Monitor Mode, [C] Clear Data, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -495,6 +495,9 @@ fn cli_menu() {
 
         } else if input == "f" {
             let _ = full_scan("./data/dirs.json");
+
+        } else if input == "m" {
+            let _ = monitor();
 
         } else if input == "c" {
             let _ = clear_data();
