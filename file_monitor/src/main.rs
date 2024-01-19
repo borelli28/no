@@ -4,8 +4,10 @@ use std::io::{self, BufReader, BufWriter, Read};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde::{Serialize, Deserialize};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use serde_json::{json, Value};
+use notify::{Watcher, RecursiveMode, recommended_watcher};
+use notify::Result as NotifyResult;
 
 
 #[derive(Serialize, Deserialize)]
@@ -302,6 +304,24 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
             return true;
         }
     }
+}
+
+fn test() -> NotifyResult<()> {
+    // Create a new watcher with the recommended implementation for the platform
+    let mut result = recommended_watcher(move |res| {
+        match res {
+            Ok(event) => println!("event: {:?}", event),
+            Err(e) => println!("watch error: {:?}", e),
+        }
+    });
+
+    // Handle the Result to access the FsEventWatcher
+    if let Ok(mut watcher) = result {
+        // Add a path to be watched. All files and directories at that path and below will be monitored for changes.
+        watcher.watch(Path::new("."), RecursiveMode::Recursive)?;
+    }
+
+    Ok(())
 }
 
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
