@@ -90,7 +90,7 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
-fn get_hash(hash: &str) -> Result<String, std::io::Error> {
+fn get_hash(file_path: &str) -> Result<String, std::io::Error> {
     let contents = fs::read_to_string("./data/baseline.json")?;
 
     // Parse the JSON into a serde_json Value
@@ -99,10 +99,9 @@ fn get_hash(hash: &str) -> Result<String, std::io::Error> {
     // Search for the object
     if let Some(array) = data.as_array() {
         for obj in array {
-            if let Some(path) = obj.get("hash") {
-                if let Some(obj_hash) = path.as_str() {
-                    if obj_hash == hash {
-                        // println!("obj_hash == hash, {}", obj_hash);
+            if let Some(path) = obj.get("file_path") {
+                if let Some(obj_path) = path.as_str() {
+                    if obj_path == file_path {
                         return Ok(obj.to_string());
                     }
                 }
@@ -110,7 +109,7 @@ fn get_hash(hash: &str) -> Result<String, std::io::Error> {
         }
     }
 
-    Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Hash not found"))
+    Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Object not found in baseline.json"))
 }
 
 fn create_file(file_path: &str) -> Result<String, io::Error> {
