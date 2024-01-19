@@ -273,8 +273,8 @@ fn clear_data() -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn hash_mismatch_checker(hash: &str) -> bool {
-    match get_hash(&hash) {
+fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
+    match get_hash(&file_path) {
         Ok(response) => {
             // Parse the JSON response into a serde_json Value
             let response_json: Value = serde_json::from_str(&response).expect("Error parsing response_str");
@@ -285,8 +285,10 @@ fn hash_mismatch_checker(hash: &str) -> bool {
                     if hash_str == hash {
                         // println!("{} == {} ?", hash_str, hash);
                         return true;
-                    } else {
+                    } else if hash_str != hash {
                         return false;
+                    } else {
+                        return true;
                     }
                 } else {
                     return true;
@@ -337,7 +339,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
                                     
                                     // Check for hash mismatch
-                                    if !hash_mismatch_checker(&hash_str) {
+                                    if !hash_mismatch_checker(&hash_str, &path) {
                                         let _ = gen_alert(&path);
                                     }
 
@@ -364,7 +366,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
                             // Check for hash mismatch
-                            if !hash_mismatch_checker(&hash_str) {
+                            if !hash_mismatch_checker(&hash_str, &_line) {
                                 let _ = gen_alert(&_line);
                             }
     
@@ -458,7 +460,7 @@ fn cli_menu() {
             let hash = hash_file(file);
             let hash: &str = &hash;
 
-            if !hash_mismatch_checker(hash) {
+            if !hash_mismatch_checker(hash, file) {
                 println!("Hash mismatch found");
             }
 
