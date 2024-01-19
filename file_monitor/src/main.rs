@@ -90,7 +90,7 @@ fn hash_file(file_path: &str) -> String {
     }
 }
 
-fn get_hash(hash: &str) -> Result<String, std::io::Error> {
+fn get_hash(file_path: &str) -> Result<String, std::io::Error> {
     let contents = fs::read_to_string("./data/baseline.json")?;
 
     // Parse the JSON into a serde_json Value
@@ -99,10 +99,9 @@ fn get_hash(hash: &str) -> Result<String, std::io::Error> {
     // Search for the object
     if let Some(array) = data.as_array() {
         for obj in array {
-            if let Some(path) = obj.get("hash") {
-                if let Some(obj_hash) = path.as_str() {
-                    if obj_hash == hash {
-                        // println!("obj_hash == hash, {}", obj_hash);
+            if let Some(path) = obj.get("file_path") {
+                if let Some(obj_path) = path.as_str() {
+                    if obj_path == file_path {
                         return Ok(obj.to_string());
                     }
                 }
@@ -110,7 +109,7 @@ fn get_hash(hash: &str) -> Result<String, std::io::Error> {
         }
     }
 
-    Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Hash not found"))
+    Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Object not found in baseline.json"))
 }
 
 fn create_file(file_path: &str) -> Result<String, io::Error> {
@@ -274,8 +273,8 @@ fn clear_data() -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn hash_mismatch_checker(hash: &str) -> bool {
-    match get_hash(&hash) {
+fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
+    match get_hash(&file_path) {
         Ok(response) => {
             // Parse the JSON response into a serde_json Value
             let response_json: Value = serde_json::from_str(&response).expect("Error parsing response_str");
@@ -286,8 +285,10 @@ fn hash_mismatch_checker(hash: &str) -> bool {
                     if hash_str == hash {
                         // println!("{} == {} ?", hash_str, hash);
                         return true;
-                    } else {
+                    } else if hash_str != hash {
                         return false;
+                    } else {
+                        return true;
                     }
                 } else {
                     return true;
@@ -297,8 +298,8 @@ fn hash_mismatch_checker(hash: &str) -> bool {
                 return true;
             }
         }
-        Err(_) => {   // Hash not found, returned by get_hash()
-            return false;
+        Err(_) => {   // Object not found, returned by get_hash()
+            return true;
         }
     }
 }
@@ -338,7 +339,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
                                     
                                     // Check for hash mismatch
-                                    if !hash_mismatch_checker(&hash_str) {
+                                    if !hash_mismatch_checker(&hash_str, &path) {
                                         let _ = gen_alert(&path);
                                     }
 
@@ -365,7 +366,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
                             // Check for hash mismatch
-                            if !hash_mismatch_checker(&hash_str) {
+                            if !hash_mismatch_checker(&hash_str, &_line) {
                                 let _ = gen_alert(&_line);
                             }
     
@@ -459,7 +460,7 @@ fn cli_menu() {
             let hash = hash_file(file);
             let hash: &str = &hash;
 
-            if !hash_mismatch_checker(hash) {
+            if !hash_mismatch_checker(hash, file) {
                 println!("Hash mismatch found");
             }
 
