@@ -298,8 +298,8 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
                 return true;
             }
         }
-        Err(_) => {   // Hash not found, returned by get_hash()
-            return false;
+        Err(_) => {   // Object not found, returned by get_hash()
+            return true;
         }
     }
 }
