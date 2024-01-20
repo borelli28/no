@@ -224,7 +224,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn gen_alert(file_path: &str, change_type: &str) -> Result<String, io::Error> {
+fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
@@ -240,7 +240,7 @@ fn gen_alert(file_path: &str, change_type: &str) -> Result<String, io::Error> {
         
             let new_alert = json!({
                 "file_path": file_path,
-                "change_type": change_type,
+                "event_type": event_type,
                 "note": note,
                 "timestamp": timestamp,
             });
@@ -317,7 +317,7 @@ fn monitor() -> Result<Event, notify::Error> {
             }
         }).unwrap();
 
-        watcher.watch(Path::new("."), RecursiveMode::Recursive).unwrap();
+        watcher.watch(Path::new("/Users/Armando/Projects/unix-fim/file_monitor/test.txt"), RecursiveMode::Recursive).unwrap();
 
         loop {
             std::thread::sleep(std::time::Duration::from_millis(100));
@@ -327,18 +327,24 @@ fn monitor() -> Result<Event, notify::Error> {
     loop {
         match rx.recv() {
             Ok(event) => {
+                let path = event.paths[0].to_str().unwrap_or("None");
+
                 match event.kind {
                     notify::EventKind::Create(_) => {
-                        println!("File created: {:?}", event.paths[0]);
+                        println!("File created: {:?}", path);
+                        let _ = gen_alert(path, "Create");
                     }
                     notify::EventKind::Modify(_) => {
-                        println!("File modified: {:?}", event.paths[0]);
+                        println!("File modified: {:?}", path);
+                        let _ = gen_alert(path, "Modify");
                     }
                     notify::EventKind::Remove(_) => {
-                        println!("File removed: {:?}", event.paths[0]);
+                        println!("File removed: {:?}", path);
+                        let _ = gen_alert(path, "Remove");
                     }
                     notify::EventKind::Access(_) => {
-                        println!("File accessed: {:?}", event.paths[0]);
+                        println!("File accessed: {:?}", path);
+                        let _ = gen_alert(path, "Access");
                     }
                     notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event"),
                 }
