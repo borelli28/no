@@ -4,8 +4,10 @@ use std::io::{self, BufReader, BufWriter, Read};
 use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde::{Serialize, Deserialize};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
+use std::collections::HashSet;
 use serde_json::{json, Value};
+use notify::{Watcher, RecursiveMode, recommended_watcher, Event, ErrorKind};
 
 
 #[derive(Serialize, Deserialize)]
@@ -222,11 +224,11 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn gen_alert(file_path: &str) -> Result<String, io::Error> {
+fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
-            let note: &str = &format!("Change detected in {} since the last scan of the file", file_path);
+            let note: &str = &format!("{} event detected in {}", event_type, file_path);
             let now = chrono::Utc::now();
             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
         
@@ -238,6 +240,7 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
         
             let new_alert = json!({
                 "file_path": file_path,
+                "event_type": event_type,
                 "note": note,
                 "timestamp": timestamp,
             });
@@ -257,7 +260,7 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
         Err(_err) => {
             match create_file(alerts_file) {
                 Ok(_) => {
-                    let _ = gen_alert(file_path);
+                    let _ = gen_alert(file_path, "None");
                     Ok(String::from("Ok"))
                 },
                 Err(err) => Err(err),
@@ -304,6 +307,83 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
     }
 }
 
+fn monitor() -> Result<Event, notify::Error> {
+    let mut directories_to_watch: HashSet<String> = HashSet::new();
+
+    let mut file = OpenOptions::new().read(true).open("./data/dirs.json")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    let data: Result<Value, _> = serde_json::from_str(&contents);
+    match data {
+        Ok(value) => {
+            if let Some(arr) = value.as_array() {
+                for val in arr {
+                    if let Some(file_path) = val.get("file_path").and_then(Value::as_str) {
+                        directories_to_watch.insert(file_path.to_string());
+                    }
+                }
+            }
+        },
+        Err(_) => {
+            return Err(notify::Error::new(ErrorKind::Generic(String::from("Error parsing data in fn monitor"))));
+        }
+    }
+
+    let (tx, rx) = std::sync::mpsc::channel();
+
+    std::thread::spawn(move || {
+        let mut watcher = recommended_watcher(move |res: Result<Event, notify::Error>| {
+            if let Ok(event) = res {
+                tx.send(event).unwrap();
+            }
+        }).unwrap();
+
+        for dir in &directories_to_watch {
+            if let Ok(metadata) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
+                watcher.watch(Path::new(dir), RecursiveMode::Recursive).unwrap();
+            } else {
+                eprintln!("Path not found: {}", dir);
+            }
+        }
+
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(500));
+        }
+    });
+
+    loop {
+        match rx.recv() {
+            Ok(event) => {
+                let path = event.paths[0].to_str().unwrap_or("None");
+    
+                match event.kind {
+                    notify::EventKind::Create(_) => {
+                        println!("File created: {:?}", path);
+                        let _ = gen_alert(path, "Create");
+                    }
+                    notify::EventKind::Modify(_) => {
+                        println!("File modified: {:?}", path);
+                        let _ = gen_alert(path, "Modify");
+                    }
+                    notify::EventKind::Remove(_) => {
+                        println!("File removed: {:?}", path);
+                        let _ = gen_alert(path, "Remove");
+                    }
+                    notify::EventKind::Access(_) => {
+                        println!("File accessed: {:?}", path);
+                        let _ = gen_alert(path, "Access");
+                    }
+                    notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event"),
+                }
+            }
+            Err(err) => {
+                eprintln!("Error: {:?}", err);
+            }
+        }
+    }
+}
+
 fn full_scan(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
@@ -340,7 +420,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     
                                     // Check for hash mismatch
                                     if !hash_mismatch_checker(&hash_str, &path) {
-                                        let _ = gen_alert(&path);
+                                        let _ = gen_alert(&path, "None");
                                     }
 
                                     // Delete previous object from file before writing the new object
@@ -367,7 +447,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
                             // Check for hash mismatch
                             if !hash_mismatch_checker(&hash_str, &_line) {
-                                let _ = gen_alert(&_line);
+                                let _ = gen_alert(&_line, "None");
                             }
     
                             // Delete previous object from file before writing the new object
@@ -409,7 +489,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [C] Clear Data, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [M] Monitor Mode, [C] Clear Data, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -466,6 +546,9 @@ fn cli_menu() {
 
         } else if input == "f" {
             let _ = full_scan("./data/dirs.json");
+
+        } else if input == "m" {
+            let _ = monitor();
 
         } else if input == "c" {
             let _ = clear_data();
