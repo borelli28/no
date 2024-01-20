@@ -330,6 +330,9 @@ fn monitor() -> Result<Event, notify::Error> {
         }
     }
 
+    // TODO: Fix the multiple alerts issue
+    // TODO: Fix the None alerts issue
+
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
