@@ -228,7 +228,7 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
-            let note: &str = &format!("Change detected in {} since the last scan of the file", file_path);
+            let note: &str = &format!("{} event detected in {}", event_type, file_path);
             let now = chrono::Utc::now();
             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
         
