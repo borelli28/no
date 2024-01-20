@@ -331,9 +331,8 @@ fn monitor() -> Result<Event, notify::Error> {
                     notify::EventKind::Create(_) => println!("File created"),
                     notify::EventKind::Modify(_) => println!("File modified"),
                     notify::EventKind::Remove(_) => println!("File removed"),
-                    notify::EventKind::Other => println!("Other kind of event"),
-                    notify::EventKind::Any => println!("Any"),
                     notify::EventKind::Access(_) => println!("File accessed"),
+                    notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event"),
                 }
             }
             Err(err) => {
