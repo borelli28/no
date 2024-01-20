@@ -6,8 +6,8 @@ use chrono::{Utc};
 use serde::{Serialize, Deserialize};
 use std::path::{PathBuf, Path};
 use serde_json::{json, Value};
-use notify::{Watcher, RecursiveMode, recommended_watcher};
-use notify::Result as NotifyResult;
+use notify::{Watcher, RecursiveMode, recommended_watcher, Event};
+// use notify::Result as NotifyResult;
 
 
 #[derive(Serialize, Deserialize)]
@@ -224,7 +224,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn gen_alert(file_path: &str) -> Result<String, io::Error> {
+fn gen_alert(file_path: &str, change_type: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
@@ -240,6 +240,7 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
         
             let new_alert = json!({
                 "file_path": file_path,
+                "change_type": change_type,
                 "note": note,
                 "timestamp": timestamp,
             });
@@ -259,7 +260,7 @@ fn gen_alert(file_path: &str) -> Result<String, io::Error> {
         Err(_err) => {
             match create_file(alerts_file) {
                 Ok(_) => {
-                    let _ = gen_alert(file_path);
+                    let _ = gen_alert(file_path, "None");
                     Ok(String::from("Ok"))
                 },
                 Err(err) => Err(err),
@@ -306,25 +307,34 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
     }
 }
 
-fn monitor() -> NotifyResult<()> {
-    // Create a multi-producer, single-consumer channel for sending file system events
-    let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
+fn monitor() -> Result<Event, notify::Error> {
+    let (tx, rx) = std::sync::mpsc::channel();
 
-    // Set up a file system watcher using the recommended implementation for the platform
-    let mut watcher = recommended_watcher(move |res| {
-        match res {
-            Ok(event) => println!("event: {:?}", event),
-            Err(e) => println!("watch error: {:?}", e),
+    std::thread::spawn(move || {
+        let mut watcher = recommended_watcher(move |res: Result<Event, notify::Error>| {
+            if let Ok(event) = res {
+                tx.send(event).unwrap();
+            }
+        }).unwrap();
+
+        watcher.watch(Path::new("."), RecursiveMode::Recursive).unwrap();
+
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(100));
         }
-    })?;
-
-    watcher.watch(Path::new("."), RecursiveMode::Recursive)?;
+    });
 
     loop {
-        // Receive and process the next file system event from the channel
         match rx.recv() {
             Ok(event) => {
-                println!("{:?}", event);
+                match event.kind {
+                    notify::EventKind::Create(_) => println!("File created"),
+                    notify::EventKind::Modify(_) => println!("File modified"),
+                    notify::EventKind::Remove(_) => println!("File removed"),
+                    notify::EventKind::Other => println!("Other kind of event"),
+                    notify::EventKind::Any => println!("Any"),
+                    notify::EventKind::Access(_) => println!("File accessed"),
+                }
             }
             Err(err) => {
                 eprintln!("{:?}", err);
@@ -369,7 +379,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     
                                     // Check for hash mismatch
                                     if !hash_mismatch_checker(&hash_str, &path) {
-                                        let _ = gen_alert(&path);
+                                        let _ = gen_alert(&path, "None");
                                     }
 
                                     // Delete previous object from file before writing the new object
@@ -396,7 +406,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
                             // Check for hash mismatch
                             if !hash_mismatch_checker(&hash_str, &_line) {
-                                let _ = gen_alert(&_line);
+                                let _ = gen_alert(&_line, "None");
                             }
     
                             // Delete previous object from file before writing the new object
