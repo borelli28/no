@@ -328,10 +328,18 @@ fn monitor() -> Result<Event, notify::Error> {
         match rx.recv() {
             Ok(event) => {
                 match event.kind {
-                    notify::EventKind::Create(_) => println!("File created"),
-                    notify::EventKind::Modify(_) => println!("File modified"),
-                    notify::EventKind::Remove(_) => println!("File removed"),
-                    notify::EventKind::Access(_) => println!("File accessed"),
+                    notify::EventKind::Create(_) => {
+                        println!("File created: {:?}", event.paths[0]);
+                    }
+                    notify::EventKind::Modify(_) => {
+                        println!("File modified: {:?}", event.paths[0]);
+                    }
+                    notify::EventKind::Remove(_) => {
+                        println!("File removed: {:?}", event.paths[0]);
+                    }
+                    notify::EventKind::Access(_) => {
+                        println!("File accessed: {:?}", event.paths[0]);
+                    }
                     notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event"),
                 }
             }
