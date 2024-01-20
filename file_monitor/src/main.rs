@@ -5,9 +5,9 @@ use sha2::{Digest, Sha256};
 use chrono::{Utc};
 use serde::{Serialize, Deserialize};
 use std::path::{PathBuf, Path};
+use std::collections::HashSet;
 use serde_json::{json, Value};
-use notify::{Watcher, RecursiveMode, recommended_watcher, Event};
-// use notify::Result as NotifyResult;
+use notify::{Watcher, RecursiveMode, recommended_watcher, Event, ErrorKind};
 
 
 #[derive(Serialize, Deserialize)]
@@ -308,6 +308,28 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
 }
 
 fn monitor() -> Result<Event, notify::Error> {
+    let mut directories_to_watch: HashSet<String> = HashSet::new();
+
+    let mut file = OpenOptions::new().read(true).open("./data/dirs.json")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    let data: Result<Value, _> = serde_json::from_str(&contents);
+    match data {
+        Ok(value) => {
+            if let Some(arr) = value.as_array() {
+                for val in arr {
+                    if let Some(file_path) = val.get("file_path").and_then(Value::as_str) {
+                        directories_to_watch.insert(file_path.to_string());
+                    }
+                }
+            }
+        },
+        Err(_) => {
+            return Err(notify::Error::new(ErrorKind::Generic(String::from("Error parsing data in fn monitor"))));
+        }
+    }
+
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
@@ -317,10 +339,16 @@ fn monitor() -> Result<Event, notify::Error> {
             }
         }).unwrap();
 
-        watcher.watch(Path::new("/Users/Armando/Projects/unix-fim/file_monitor/test.txt"), RecursiveMode::Recursive).unwrap();
+        for dir in &directories_to_watch {
+            if let Ok(metadata) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
+                watcher.watch(Path::new(dir), RecursiveMode::Recursive).unwrap();
+            } else {
+                eprintln!("Path not found: {}", dir);
+            }
+        }
 
         loop {
-            std::thread::sleep(std::time::Duration::from_millis(100));
+            std::thread::sleep(std::time::Duration::from_millis(500));
         }
     });
 
@@ -328,7 +356,7 @@ fn monitor() -> Result<Event, notify::Error> {
         match rx.recv() {
             Ok(event) => {
                 let path = event.paths[0].to_str().unwrap_or("None");
-
+    
                 match event.kind {
                     notify::EventKind::Create(_) => {
                         println!("File created: {:?}", path);
@@ -350,7 +378,7 @@ fn monitor() -> Result<Event, notify::Error> {
                 }
             }
             Err(err) => {
-                eprintln!("{:?}", err);
+                eprintln!("Error: {:?}", err);
             }
         }
     }
