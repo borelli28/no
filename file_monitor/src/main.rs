@@ -244,16 +244,18 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
                 "note": note,
                 "timestamp": timestamp,
             });
-        
-            let mut alerts_array = match existing_json {
-                Value::Array(arr) => arr,
-                _ => vec![existing_json],
-            };
-        
-            alerts_array.push(new_alert);
-            let updated_json = serde_json::to_string_pretty(&alerts_array)?;
-        
-            fs::write(alerts_file, updated_json)?;
+
+            if new_alert["event_type"] != "None" {
+                let mut alerts_array = match existing_json {
+                    Value::Array(arr) => arr,
+                    _ => vec![existing_json],
+                };
+            
+                alerts_array.push(new_alert);
+                let updated_json = serde_json::to_string_pretty(&alerts_array)?;
+            
+                fs::write(alerts_file, updated_json)?;
+            }
         
             Ok(String::from("Ok"))
         }
@@ -330,6 +332,8 @@ fn monitor() -> Result<Event, notify::Error> {
         }
     }
 
+    // TODO: Fix the multiple alerts issue
+
     let (tx, rx) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
@@ -340,7 +344,7 @@ fn monitor() -> Result<Event, notify::Error> {
         }).unwrap();
 
         for dir in &directories_to_watch {
-            if let Ok(metadata) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
+            if let Ok(_) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
                 watcher.watch(Path::new(dir), RecursiveMode::Recursive).unwrap();
             } else {
                 eprintln!("Path not found: {}", dir);
@@ -487,9 +491,32 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
     }
 }
 
+fn show_alerts() -> Result<String, io::Error> {
+    let mut file = OpenOptions::new().read(true).open("./data/alerts.json")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    let data: Result<Value, _> = serde_json::from_str(&contents);
+    match data {
+        Ok(value) => {
+            if let Some(arr) = value.as_array() {
+                let mut counter: u16 = 1;
+                for val in arr {
+                    let log = format!("#{} --- {} event in: {}, at: {}", counter, val["event_type"], val["file_path"], val["timestamp"]);
+                    println!("{}", log);
+                    counter += 1;
+                }
+                println!("\n");
+            }
+            Ok(String::from("Ok"))
+        },
+        Err(err) => Err(std::io::Error::new(std::io::ErrorKind::Other, err.to_string())),
+    }
+}
+
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [M] Monitor Mode, [C] Clear Data, [Q] Quit");
+        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -549,6 +576,9 @@ fn cli_menu() {
 
         } else if input == "m" {
             let _ = monitor();
+
+        } else if input == "s" {
+            let _ = show_alerts();
 
         } else if input == "c" {
             let _ = clear_data();
