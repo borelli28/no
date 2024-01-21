@@ -244,16 +244,18 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
                 "note": note,
                 "timestamp": timestamp,
             });
-        
-            let mut alerts_array = match existing_json {
-                Value::Array(arr) => arr,
-                _ => vec![existing_json],
-            };
-        
-            alerts_array.push(new_alert);
-            let updated_json = serde_json::to_string_pretty(&alerts_array)?;
-        
-            fs::write(alerts_file, updated_json)?;
+
+            if new_alert["event_type"] != "None" {
+                let mut alerts_array = match existing_json {
+                    Value::Array(arr) => arr,
+                    _ => vec![existing_json],
+                };
+            
+                alerts_array.push(new_alert);
+                let updated_json = serde_json::to_string_pretty(&alerts_array)?;
+            
+                fs::write(alerts_file, updated_json)?;
+            }
         
             Ok(String::from("Ok"))
         }
@@ -331,7 +333,6 @@ fn monitor() -> Result<Event, notify::Error> {
     }
 
     // TODO: Fix the multiple alerts issue
-    // TODO: Fix the None alerts issue
 
     let (tx, rx) = std::sync::mpsc::channel();
 
