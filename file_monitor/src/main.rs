@@ -500,9 +500,13 @@ fn show_alerts() -> Result<String, io::Error> {
     match data {
         Ok(value) => {
             if let Some(arr) = value.as_array() {
+                let mut counter: u8 = 1;
                 for val in arr {
-                    println!("{}", val);
+                    let log = format!("#{} --- {} event in: {}, at: {}", counter, val["event_type"], val["file_path"], val["timestamp"]);
+                    println!("{}", log);
+                    counter += 1;
                 }
+                println!("\n");
             }
             Ok(String::from("Ok"))
         },
