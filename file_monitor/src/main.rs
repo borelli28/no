@@ -491,6 +491,25 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
     }
 }
 
+fn show_alerts() -> Result<String, io::Error> {
+    let mut file = OpenOptions::new().read(true).open("./data/alerts.json")?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+
+    let data: Result<Value, _> = serde_json::from_str(&contents);
+    match data {
+        Ok(value) => {
+            if let Some(arr) = value.as_array() {
+                for val in arr {
+                    println!("{}", val);
+                }
+            }
+            Ok(String::from("Ok"))
+        },
+        Err(err) => Err(std::io::Error::new(std::io::ErrorKind::Other, err.to_string())),
+    }
+}
+
 fn cli_menu() {
     loop {
         println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [M] Monitor Mode, [C] Clear Data, [Q] Quit");
