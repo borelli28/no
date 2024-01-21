@@ -332,7 +332,7 @@ fn monitor() -> Result<Event, notify::Error> {
         }
     }
 
-    // TODO: Fix the multiple alerts issue
+    // TODO: Fix multiple alerts issue
 
     let (tx, rx) = std::sync::mpsc::channel();
 
