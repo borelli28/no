@@ -346,8 +346,6 @@ fn monitor() -> Result<Event, notify::Error> {
         for dir in &directories_to_watch {
             if let Ok(_) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
                 watcher.watch(Path::new(dir), RecursiveMode::Recursive).unwrap();
-            } else {
-                eprintln!("Path not found: {}", dir);
             }
         }
 
