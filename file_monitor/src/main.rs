@@ -323,9 +323,9 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
 }
 
 fn monitor() -> Result<Event, notify::Error> {
-    let mut directories_to_watch: HashSet<String> = HashSet::new();
+    let mut files_to_watch: HashSet<String> = HashSet::new();
 
-    let mut file = OpenOptions::new().read(true).open("./data/dirs.json")?;
+    let mut file = OpenOptions::new().read(true).open("./data/baseline.json")?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
 
@@ -335,7 +335,7 @@ fn monitor() -> Result<Event, notify::Error> {
             if let Some(arr) = value.as_array() {
                 for val in arr {
                     if let Some(file_path) = val.get("file_path").and_then(Value::as_str) {
-                        directories_to_watch.insert(file_path.to_string());
+                        files_to_watch.insert(file_path.to_string());
                     }
                 }
             }
@@ -345,30 +345,28 @@ fn monitor() -> Result<Event, notify::Error> {
         }
     }
 
-    // TODO: Fix multiple alerts issue
-
-    let (tx, rx) = std::sync::mpsc::channel();
+    let (sender, receiver) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
         let mut watcher = recommended_watcher(move |res: Result<Event, notify::Error>| {
             if let Ok(event) = res {
-                tx.send(event).unwrap();
+                sender.send(event).unwrap();
             }
         }).unwrap();
 
-        for dir in &directories_to_watch {
+        for dir in &files_to_watch {
             if let Ok(_) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
-                watcher.watch(Path::new(dir), RecursiveMode::Recursive).unwrap();
+                watcher.watch(Path::new(dir), RecursiveMode::NonRecursive).unwrap();
             }
         }
 
         loop {
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            std::thread::sleep(std::time::Duration::from_secs(1));
         }
     });
 
     loop {
-        match rx.recv() {
+        match receiver.recv() {
             Ok(event) => {
                 let path = event.paths[0].to_str().unwrap_or("None");
     
