@@ -17,6 +17,14 @@ struct Hashes {
     timestamp: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct Alert {
+    file_path: String,
+    event_type: String,
+    note: String,
+    timestamp: String,
+}
+
 fn gen_dirs_file() -> Result<String, io::Error> {
     let file = "./data/dirs.json";
 
@@ -110,7 +118,6 @@ fn get_hash(file_path: &str) -> Result<String, std::io::Error> {
             }
         }
     }
-
     Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Object not found in baseline.json"))
 }
 
@@ -228,9 +235,9 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
-            let note: &str = &format!("{} event detected in {}", event_type, file_path);
+            let note: String = format!("{} event detected in {}", event_type, file_path);
             let now = chrono::Utc::now();
-            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+            let timestamp: String = now.format("%Y-%m-%d %H:%M:%S").to_string();
         
             let existing_json = if let Ok(contents) = fs::read_to_string(alerts_file) {
                 serde_json::from_str(&contents).unwrap_or(json!({}))
@@ -238,31 +245,29 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
                 json!({})
             };
         
-            let new_alert = json!({
-                "file_path": file_path,
-                "event_type": event_type,
-                "note": note,
-                "timestamp": timestamp,
-            });
+            let new_alert = Alert {
+                file_path: file_path.to_string(),
+                event_type: event_type.to_string(),
+                note,
+                timestamp,
+            };
 
-            if new_alert["event_type"] != "None" {
-                let mut alerts_array = match existing_json {
-                    Value::Array(arr) => arr,
-                    _ => vec![existing_json],
-                };
-            
-                alerts_array.push(new_alert);
-                let updated_json = serde_json::to_string_pretty(&alerts_array)?;
-            
-                fs::write(alerts_file, updated_json)?;
-            }
+            let mut alerts_array = match existing_json {
+                Value::Array(arr) => arr,
+                _ => vec![existing_json],
+            };
+        
+            alerts_array.push(serde_json::to_value(&new_alert)?); // Convert new_alert to Value before pushing into alerts_array
+            let updated_json = serde_json::to_string_pretty(&alerts_array)?;
+        
+            fs::write(alerts_file, updated_json)?;
         
             Ok(String::from("Ok"))
         }
         Err(_err) => {
             match create_file(alerts_file) {
                 Ok(_) => {
-                    let _ = gen_alert(file_path, "None");
+                    let _ = gen_alert(file_path, event_type);
                     Ok(String::from("Ok"))
                 },
                 Err(err) => Err(err),
@@ -332,7 +337,7 @@ fn monitor() -> Result<Event, notify::Error> {
         }
     }
 
-    // TODO: Fix the multiple alerts issue
+    // TODO: Fix multiple alerts issue
 
     let (tx, rx) = std::sync::mpsc::channel();
 
@@ -346,8 +351,6 @@ fn monitor() -> Result<Event, notify::Error> {
         for dir in &directories_to_watch {
             if let Ok(_) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
                 watcher.watch(Path::new(dir), RecursiveMode::Recursive).unwrap();
-            } else {
-                eprintln!("Path not found: {}", dir);
             }
         }
 
@@ -424,7 +427,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     
                                     // Check for hash mismatch
                                     if !hash_mismatch_checker(&hash_str, &path) {
-                                        let _ = gen_alert(&path, "None");
+                                        let _ = gen_alert(&path, "Modify");
                                     }
 
                                     // Delete previous object from file before writing the new object
@@ -451,7 +454,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
                             // Check for hash mismatch
                             if !hash_mismatch_checker(&hash_str, &_line) {
-                                let _ = gen_alert(&_line, "None");
+                                let _ = gen_alert(&_line, "Modify");
                             }
     
                             // Delete previous object from file before writing the new object
