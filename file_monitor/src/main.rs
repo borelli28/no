@@ -20,10 +20,19 @@ struct Hashes {
 #[derive(Serialize, Deserialize)]
 struct Alert {
     file_path: String,
-    event_type: String,
+    event_type: EventType,
     note: String,
     timestamp: String,
 }
+
+#[derive(Serialize, Deserialize)]
+enum EventType {
+    Create,
+    Modify,
+    Remove,
+    Access
+}
+
 
 fn gen_dirs_file() -> Result<String, io::Error> {
     let file = "./data/dirs.json";
@@ -231,11 +240,11 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
+fn gen_alert(file_path: &str, event_type: EventType) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
-            let note: String = format!("{} event detected in {}", event_type, file_path);
+            let note: String = format!("Event detected in {}", file_path);
             let now = chrono::Utc::now();
             let timestamp: String = now.format("%Y-%m-%d %H:%M:%S").to_string();
         
@@ -247,7 +256,7 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
         
             let new_alert = Alert {
                 file_path: file_path.to_string(),
-                event_type: event_type.to_string(),
+                event_type: event_type,
                 note,
                 timestamp,
             };
@@ -293,7 +302,6 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
             if let Some(hash_value) = response_json.get("hash") {
                 if let Some(hash_str) = hash_value.as_str() {
                     if hash_str == hash {
-                        // println!("{} == {} ?", hash_str, hash);
                         return true;
                     } else if hash_str != hash {
                         return false;
@@ -366,26 +374,22 @@ fn monitor() -> Result<Event, notify::Error> {
     
                 match event.kind {
                     notify::EventKind::Create(_) => {
-                        println!("File created: {:?}", path);
-                        let _ = gen_alert(path, "Create");
+                        let _ = gen_alert(path, EventType::Create);
                     }
                     notify::EventKind::Modify(_) => {
-                        println!("File modified: {:?}", path);
-                        let _ = gen_alert(path, "Modify");
+                        let _ = gen_alert(path, EventType::Modify);
                     }
                     notify::EventKind::Remove(_) => {
-                        println!("File removed: {:?}", path);
-                        let _ = gen_alert(path, "Remove");
+                        let _ = gen_alert(path, EventType::Remove);
                     }
                     notify::EventKind::Access(_) => {
-                        println!("File accessed: {:?}", path);
-                        let _ = gen_alert(path, "Access");
+                        let _ = gen_alert(path, EventType::Access);
                     }
-                    notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event"),
+                    notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event \n"),
                 }
             }
             Err(err) => {
-                eprintln!("Error: {:?}", err);
+                eprintln!("Error: {}", err);
             }
         }
     }
@@ -416,7 +420,6 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 let entry = entry?;
                                 let path = entry.path();
                                 if path.is_dir() {
-                                    // println!("path is dir");
                                     continue
                                 } else {
                                     let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
@@ -424,14 +427,12 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let hash_str: &str = &hash;
                                     let now = Utc::now();
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                                    
-                                    // Check for hash mismatch
+
                                     if !hash_mismatch_checker(&hash_str, &path) {
-                                        let _ = gen_alert(&path, "Modify");
+                                        let _ = gen_alert(&path, EventType::Modify);
                                     }
 
-                                    // Delete previous object from file before writing the new object
-                                    let _ = delete_hash(&path);
+                                    let _ = delete_hash(&path); // Delete previous object from file before writing the new object
     
                                     match write_hash(hash_str, &path, timestamp) {
                                         Ok(_) => {
@@ -445,24 +446,20 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 }
                             }
                         } else { // String is a file path instead of a directory path
-                            // println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
                             let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                             let hash = hash_file(&_line);
                             let hash_str: &str = &hash;
                             let now = Utc::now();
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-                            // Check for hash mismatch
                             if !hash_mismatch_checker(&hash_str, &_line) {
-                                let _ = gen_alert(&_line, "Modify");
+                                let _ = gen_alert(&_line, EventType::Modify);
                             }
     
-                            // Delete previous object from file before writing the new object
-                            let _ = delete_hash(&_line);
+                            let _ = delete_hash(&_line); // Delete previous object from file before writing the new object
     
                             match write_hash(hash_str, &_line, timestamp) {
                                 Ok(_) => {
-                                    // println!("Write Ok");
                                     continue
                                 }
                                 Err(err) => {
