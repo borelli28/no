@@ -235,9 +235,9 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
-            let note: &str = &format!("{} event detected in {}", event_type, file_path);
+            let note: String = format!("{} event detected in {}", event_type, file_path);
             let now = chrono::Utc::now();
-            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+            let timestamp: String = now.format("%Y-%m-%d %H:%M:%S").to_string();
         
             let existing_json = if let Ok(contents) = fs::read_to_string(alerts_file) {
                 serde_json::from_str(&contents).unwrap_or(json!({}))
@@ -246,8 +246,8 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
             };
         
             let new_alert = Alert {
-                file_path,
-                event_type,
+                file_path: file_path.to_string(),
+                event_type: event_type.to_string(),
                 note,
                 timestamp,
             };
