@@ -20,11 +20,12 @@ struct Hashes {
 #[derive(Serialize, Deserialize)]
 struct Alert {
     file_path: String,
-    event_type: String,
+    event_type: EventType,
     note: String,
     timestamp: String,
 }
 
+#[derive(Serialize, Deserialize)]
 enum EventType {
     Create,
     Modify,
