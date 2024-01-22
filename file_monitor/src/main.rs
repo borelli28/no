@@ -302,7 +302,6 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
             if let Some(hash_value) = response_json.get("hash") {
                 if let Some(hash_str) = hash_value.as_str() {
                     if hash_str == hash {
-                        // println!("{} == {} ?", hash_str, hash);
                         return true;
                     } else if hash_str != hash {
                         return false;
