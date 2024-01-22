@@ -345,8 +345,6 @@ fn monitor() -> Result<Event, notify::Error> {
         }
     }
 
-    // TODO: Fix multiple alerts issue
-
     let (sender, receiver) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
