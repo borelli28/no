@@ -335,7 +335,6 @@ fn monitor() -> Result<Event, notify::Error> {
             if let Some(arr) = value.as_array() {
                 for val in arr {
                     if let Some(file_path) = val.get("file_path").and_then(Value::as_str) {
-                        println!("{}", file_path.to_string());
                         files_to_watch.insert(file_path.to_string());
                     }
                 }
@@ -356,7 +355,6 @@ fn monitor() -> Result<Event, notify::Error> {
                 sender.send(event).unwrap();
             }
         }).unwrap();
-        println!("In watcher thread");
 
         for dir in &files_to_watch {
             if let Ok(_) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
@@ -365,7 +363,7 @@ fn monitor() -> Result<Event, notify::Error> {
         }
 
         loop {
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            std::thread::sleep(std::time::Duration::from_secs(1));
         }
     });
 
@@ -379,7 +377,6 @@ fn monitor() -> Result<Event, notify::Error> {
                         let _ = gen_alert(path, EventType::Create);
                     }
                     notify::EventKind::Modify(_) => {
-                        println!("EventKind modify");
                         let _ = gen_alert(path, EventType::Modify);
                     }
                     notify::EventKind::Remove(_) => {
