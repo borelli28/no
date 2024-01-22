@@ -427,7 +427,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     
                                     // Check for hash mismatch
                                     if !hash_mismatch_checker(&hash_str, &path) {
-                                        let _ = gen_alert(&path, "None");
+                                        let _ = gen_alert(&path, "Modify");
                                     }
 
                                     // Delete previous object from file before writing the new object
@@ -454,7 +454,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
 
                             // Check for hash mismatch
                             if !hash_mismatch_checker(&hash_str, &_line) {
-                                let _ = gen_alert(&_line, "None");
+                                let _ = gen_alert(&_line, "Modify");
                             }
     
                             // Delete previous object from file before writing the new object
