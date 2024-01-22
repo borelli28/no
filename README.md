@@ -1,2 +1,2 @@
-# File Integrity Monitor for UNIX systems
-This is a file integrity monitor that not only allows users to generate and verify hashes for individual files but also offers the capability to perform integrity checks on critical files for UNIX(MacOS and Linux) systems.
+# File Integrity Monitor
+This is a file integrity monitor that not only allow users to perform integrity checks for individual files but also offers the capability to monitor files.
