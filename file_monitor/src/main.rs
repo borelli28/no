@@ -421,7 +421,6 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 let entry = entry?;
                                 let path = entry.path();
                                 if path.is_dir() {
-                                    // println!("path is dir");
                                     continue
                                 } else {
                                     let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
@@ -429,14 +428,12 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                     let hash_str: &str = &hash;
                                     let now = Utc::now();
                                     let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
-                                    
-                                    // Check for hash mismatch
+
                                     if !hash_mismatch_checker(&hash_str, &path) {
                                         let _ = gen_alert(&path, EventType::Modify);
                                     }
 
-                                    // Delete previous object from file before writing the new object
-                                    let _ = delete_hash(&path);
+                                    let _ = delete_hash(&path); // Delete previous object from file before writing the new object
     
                                     match write_hash(hash_str, &path, timestamp) {
                                         Ok(_) => {
@@ -450,24 +447,20 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
                                 }
                             }
                         } else { // String is a file path instead of a directory path
-                            // println!("{} path is a file instead of directory, but no biggy...", i["file_path"]);
                             let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                             let hash = hash_file(&_line);
                             let hash_str: &str = &hash;
                             let now = Utc::now();
                             let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-                            // Check for hash mismatch
                             if !hash_mismatch_checker(&hash_str, &_line) {
                                 let _ = gen_alert(&_line, EventType::Modify);
                             }
     
-                            // Delete previous object from file before writing the new object
-                            let _ = delete_hash(&_line);
+                            let _ = delete_hash(&_line); // Delete previous object from file before writing the new object
     
                             match write_hash(hash_str, &_line, timestamp) {
                                 Ok(_) => {
-                                    // println!("Write Ok");
                                     continue
                                 }
                                 Err(err) => {
