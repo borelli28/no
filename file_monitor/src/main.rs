@@ -324,7 +324,7 @@ fn hash_mismatch_checker(hash: &str, file_path: &str) -> bool {
 }
 
 fn monitor() -> Result<Event, notify::Error> {
-    let mut directories_to_watch: HashSet<String> = HashSet::new();
+    let mut files_to_watch: HashSet<String> = HashSet::new();
 
     let mut file = OpenOptions::new().read(true).open("./data/baseline.json")?;
     let mut contents = String::new();
@@ -337,7 +337,7 @@ fn monitor() -> Result<Event, notify::Error> {
                 for val in arr {
                     if let Some(file_path) = val.get("file_path").and_then(Value::as_str) {
                         println!("{}", file_path.to_string());
-                        directories_to_watch.insert(file_path.to_string());
+                        files_to_watch.insert(file_path.to_string());
                     }
                 }
             }
@@ -359,7 +359,7 @@ fn monitor() -> Result<Event, notify::Error> {
         }).unwrap();
         println!("In watcher thread");
 
-        for dir in &directories_to_watch {
+        for dir in &files_to_watch {
             if let Ok(_) = fs::metadata(dir) { // fs::metadata is used to check if the path exists to prevent errors
                 watcher.watch(Path::new(dir), RecursiveMode::NonRecursive).unwrap();
             }
