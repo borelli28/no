@@ -245,14 +245,14 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
                 json!({})
             };
         
-            let new_alert = json!({
-                "file_path": file_path,
-                "event_type": event_type,
-                "note": note,
-                "timestamp": timestamp,
-            });
+            let new_alert = Alert {
+                file_path,
+                event_type,
+                note,
+                timestamp,
+            };
 
-            if new_alert["event_type"] != "None" {
+            if new_alert.event_type != "None" {
                 let mut alerts_array = match existing_json {
                     Value::Array(arr) => arr,
                     _ => vec![existing_json],
@@ -269,7 +269,7 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
         Err(_err) => {
             match create_file(alerts_file) {
                 Ok(_) => {
-                    let _ = gen_alert(file_path, "None");
+                    let _ = gen_alert(file_path, event_type);
                     Ok(String::from("Ok"))
                 },
                 Err(err) => Err(err),
