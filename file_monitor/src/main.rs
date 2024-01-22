@@ -17,6 +17,14 @@ struct Hashes {
     timestamp: String,
 }
 
+#[derive(Serialize, Deserialize)]
+struct Alert {
+    file_path: String,
+    event_type: String,
+    note: String,
+    timestamp: String,
+}
+
 fn gen_dirs_file() -> Result<String, io::Error> {
     let file = "./data/dirs.json";
 
@@ -110,7 +118,6 @@ fn get_hash(file_path: &str) -> Result<String, std::io::Error> {
             }
         }
     }
-
     Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Object not found in baseline.json"))
 }
 
