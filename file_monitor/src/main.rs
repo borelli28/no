@@ -258,7 +258,7 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
                     _ => vec![existing_json],
                 };
             
-                alerts_array.push(new_alert);
+                alerts_array.push(serde_json::to_value(&new_alert)?); // Convert new_alert to Value before pushing into alerts_array
                 let updated_json = serde_json::to_string_pretty(&alerts_array)?;
             
                 fs::write(alerts_file, updated_json)?;
