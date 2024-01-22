@@ -240,7 +240,7 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
     Ok(String::from("Ok"))
 }
 
-fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
+fn gen_alert(file_path: &str, event_type: EventType) -> Result<String, io::Error> {
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
@@ -256,7 +256,7 @@ fn gen_alert(file_path: &str, event_type: &str) -> Result<String, io::Error> {
         
             let new_alert = Alert {
                 file_path: file_path.to_string(),
-                event_type: event_type.to_string(),
+                event_type: event_type,
                 note,
                 timestamp,
             };
@@ -376,21 +376,21 @@ fn monitor() -> Result<Event, notify::Error> {
                 match event.kind {
                     notify::EventKind::Create(_) => {
                         println!("File created: {:?}", path);
-                        let _ = gen_alert(path, "Create");
+                        let _ = gen_alert(path, EventType::Create);
                     }
                     notify::EventKind::Modify(_) => {
                         println!("File modified: {:?}", path);
-                        let _ = gen_alert(path, "Modify");
+                        let _ = gen_alert(path, EventType::Modify);
                     }
                     notify::EventKind::Remove(_) => {
                         println!("File removed: {:?}", path);
-                        let _ = gen_alert(path, "Remove");
+                        let _ = gen_alert(path, EventType::Remove);
                     }
                     notify::EventKind::Access(_) => {
                         println!("File accessed: {:?}", path);
-                        let _ = gen_alert(path, "Access");
+                        let _ = gen_alert(path, EventType::Access);
                     }
-                    notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event"),
+                    notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event \n"),
                 }
             }
             Err(err) => {
