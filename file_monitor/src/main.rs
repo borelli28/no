@@ -25,6 +25,14 @@ struct Alert {
     timestamp: String,
 }
 
+enum EventType {
+    Create,
+    Modify,
+    Remove,
+    Access
+}
+
+
 fn gen_dirs_file() -> Result<String, io::Error> {
     let file = "./data/dirs.json";
 
