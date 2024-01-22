@@ -375,26 +375,22 @@ fn monitor() -> Result<Event, notify::Error> {
     
                 match event.kind {
                     notify::EventKind::Create(_) => {
-                        println!("File created: {:?}", path);
                         let _ = gen_alert(path, EventType::Create);
                     }
                     notify::EventKind::Modify(_) => {
-                        println!("File modified: {:?}", path);
                         let _ = gen_alert(path, EventType::Modify);
                     }
                     notify::EventKind::Remove(_) => {
-                        println!("File removed: {:?}", path);
                         let _ = gen_alert(path, EventType::Remove);
                     }
                     notify::EventKind::Access(_) => {
-                        println!("File accessed: {:?}", path);
                         let _ = gen_alert(path, EventType::Access);
                     }
                     notify::EventKind::Other | notify::EventKind::Any => println!("Other kind of event \n"),
                 }
             }
             Err(err) => {
-                eprintln!("Error: {:?}", err);
+                eprintln!("Error: {}", err);
             }
         }
     }
