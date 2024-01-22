@@ -241,7 +241,6 @@ fn add_file(file_path: &str) -> Result<String, io::Error> {
 }
 
 fn gen_alert(file_path: &str, event_type: EventType) -> Result<String, io::Error> {
-    println!("In gen_alert");
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
@@ -349,12 +348,12 @@ fn monitor() -> Result<Event, notify::Error> {
 
     // TODO: Fix multiple alerts issue
 
-    let (tx, rx) = std::sync::mpsc::channel();
+    let (sender, receiver) = std::sync::mpsc::channel();
 
     std::thread::spawn(move || {
         let mut watcher = recommended_watcher(move |res: Result<Event, notify::Error>| {
             if let Ok(event) = res {
-                tx.send(event).unwrap();
+                sender.send(event).unwrap();
             }
         }).unwrap();
         println!("In watcher thread");
@@ -371,7 +370,7 @@ fn monitor() -> Result<Event, notify::Error> {
     });
 
     loop {
-        match rx.recv() {
+        match receiver.recv() {
             Ok(event) => {
                 let path = event.paths[0].to_str().unwrap_or("None");
     
