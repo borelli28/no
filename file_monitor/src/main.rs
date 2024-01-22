@@ -244,7 +244,7 @@ fn gen_alert(file_path: &str, event_type: EventType) -> Result<String, io::Error
     let alerts_file = "./data/alerts.json";
     match check_file_exists(alerts_file) {
         Ok(_) => {
-            let note: String = format!("{} event detected in {}", event_type, file_path);
+            let note: String = format!("Event detected in {}", file_path);
             let now = chrono::Utc::now();
             let timestamp: String = now.format("%Y-%m-%d %H:%M:%S").to_string();
         
