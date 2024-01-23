@@ -519,7 +519,7 @@ fn show_alerts() -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [H] Check File, [A] Add File to Monitor List, [F] Full Scan, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit");
+        println!("[G] Generate Hash, [H] Check File, [A] Add File to Monitor List, [B] Generate Baseline, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -576,7 +576,7 @@ fn cli_menu() {
                 Err(err) => eprintln!("{}", err),
             }
 
-        } else if input == "f" {
+        } else if input == "b" {
             let _ = full_scan("./data/dirs.json");
 
         } else if input == "m" {
