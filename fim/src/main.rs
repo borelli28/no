@@ -519,7 +519,7 @@ fn show_alerts() -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [H] Check File, [A] Add File to Monitor List, [B] Generate Baseline, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit");
+        println!("\n[G] Generate Hash, [H] Check File, [A] Add File to Monitor List, [B] Generate Baseline, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit\n");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
