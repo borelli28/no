@@ -398,7 +398,7 @@ fn monitor() -> Result<Event, notify::Error> {
     }
 }
 
-fn full_scan(file_path: &str) -> Result<String, io::Error> {
+fn gen_baseline(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
             println!("Reading directories... Please don't quit the program until it's complete.");
@@ -482,7 +482,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
         Err(_) => {
             match gen_dirs_file() {
                 Ok(_) => {
-                    let _ = full_scan(file_path);
+                    let _ = gen_baseline(file_path);
                     Ok(String::from("Ok"))
                 }
                 Err(err) => {
@@ -577,7 +577,7 @@ fn cli_menu() {
             }
 
         } else if input == "b" {
-            let _ = full_scan("./data/dirs.json");
+            let _ = gen_baseline("./data/dirs.json");
 
         } else if input == "m" {
             let _ = monitor();
