@@ -401,7 +401,7 @@ fn monitor() -> Result<Event, notify::Error> {
 fn gen_baseline(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
-            println!("Reading directories... Please don't quit the program until it's complete.");
+            println!("\nReading directories... Please don't quit the program until it's complete.\n");
 
             let mut file = File::open(file_path).expect("File not found");
             let mut contents = String::new();
