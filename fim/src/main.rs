@@ -70,7 +70,12 @@ fn gen_dirs_file() -> Result<String, io::Error> {
         json!({"file_path": "/usr/local/var/mysql"}),
         json!({"file_path": "/usr/local/var/postgres"}),
         json!({"file_path": "/System/Library"}),
-        json!({"file_path": "/usr/libexec"})
+        json!({"file_path": "/usr/libexec"}),
+        json!({"file_path": "C:\\Windows"}),
+        json!({"file_path": "C:\\Program Files"}),
+        json!({"file_path": "C:\\Program Files (x86)"}),
+        json!({"file_path": "C:\\ProgramData"}),
+        json!({"file_path": "C:\\Windows\\System32"})
     ];
 
     let json_data = serde_json::to_string_pretty(&data).unwrap();
