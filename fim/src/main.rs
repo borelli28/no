@@ -529,6 +529,19 @@ fn cli_menu() {
             let response = hash_file(&file);
             println!("\n {} \n", response);
 
+        }  else if input == "h" {
+            println!("\n Enter file path: ");
+            let mut file = String::new();
+            io::stdin().read_line(&mut file).expect("Failed to read line");
+            let file: &str = file.trim();
+
+            let hash = hash_file(file);
+            let hash: &str = &hash;
+
+            if !hash_mismatch_checker(hash, file) {
+                println!("Hash mismatch found");
+            }
+
         } else if input == "a" {
             println!("\n Enter file path: ");
             let mut file = String::new();
@@ -554,19 +567,6 @@ fn cli_menu() {
                     }
                 }
                 Err(err) => eprintln!("{}", err),
-            }
-
-        }  else if input == "h" {
-            println!("\n Enter file path: ");
-            let mut file = String::new();
-            io::stdin().read_line(&mut file).expect("Failed to read line");
-            let file: &str = file.trim();
-
-            let hash = hash_file(file);
-            let hash: &str = &hash;
-
-            if !hash_mismatch_checker(hash, file) {
-                println!("Hash mismatch found");
             }
 
         } else if input == "f" {
