@@ -539,7 +539,9 @@ fn cli_menu() {
             let hash: &str = &hash;
 
             if !hash_mismatch_checker(hash, file) {
-                println!("Hash mismatch found");
+                println!("Hash mismatch found \n");
+            } else {
+                println!("No mistmatch detected or file not found in baseline \n");
             }
 
         } else if input == "a" {
