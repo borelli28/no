@@ -398,10 +398,10 @@ fn monitor() -> Result<Event, notify::Error> {
     }
 }
 
-fn full_scan(file_path: &str) -> Result<String, io::Error> {
+fn gen_baseline(file_path: &str) -> Result<String, io::Error> {
     match check_file_exists(file_path) {
         Ok(_) => {
-            println!("Reading directories... Please don't quit the program until it's complete.");
+            println!("\nReading directories... Please don't quit the program until it's complete.\n");
 
             let mut file = File::open(file_path).expect("File not found");
             let mut contents = String::new();
@@ -482,7 +482,7 @@ fn full_scan(file_path: &str) -> Result<String, io::Error> {
         Err(_) => {
             match gen_dirs_file() {
                 Ok(_) => {
-                    let _ = full_scan(file_path);
+                    let _ = gen_baseline(file_path);
                     Ok(String::from("Ok"))
                 }
                 Err(err) => {
@@ -519,7 +519,7 @@ fn show_alerts() -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [H] Check File, [A] Add file, [F] Full Scan, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit");
+        println!("\n[G] Generate Hash, [H] Check File, [A] Add File to Monitor List, [B] Generate Baseline, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit\n");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -569,15 +569,15 @@ fn cli_menu() {
                             println!("\n File added! \n");
                         }
                         Err(err) => {
-                            eprintln!("Error reading the file: {}", err);
+                            eprintln!("Error reading the file: {} \n", err);
                         }
                     }
                 }
                 Err(err) => eprintln!("{}", err),
             }
 
-        } else if input == "f" {
-            let _ = full_scan("./data/dirs.json");
+        } else if input == "b" {
+            let _ = gen_baseline("./data/dirs.json");
 
         } else if input == "m" {
             let _ = monitor();
