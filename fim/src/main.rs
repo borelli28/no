@@ -79,7 +79,7 @@ fn gen_dirs_file() -> Result<String, io::Error> {
     ];
 
     let json_data = serde_json::to_string_pretty(&data).unwrap();
-    fs::write(file, json_data).unwrap();
+    fs::write(file, json_data).expect("Couldn't write to /data/dirs.json");
     Ok(String::from("Ok"))
 }
 
