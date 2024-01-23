@@ -514,7 +514,7 @@ fn show_alerts() -> Result<String, io::Error> {
 
 fn cli_menu() {
     loop {
-        println!("[G] Generate Hash, [A] Add file, [H] Check Hash, [F] Full Scan, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit");
+        println!("[G] Generate Hash, [H] Check Hash, [A] Add file, [F] Full Scan, [M] Monitor Mode, [S] Show Alerts, [C] Clear Data, [Q] Quit");
 
         let mut input = String::new();
         io::stdin().read_line(&mut input).expect("Failed to read line");
@@ -528,6 +528,21 @@ fn cli_menu() {
 
             let response = hash_file(&file);
             println!("\n {} \n", response);
+
+        }  else if input == "h" {
+            println!("\n Enter file path: ");
+            let mut file = String::new();
+            io::stdin().read_line(&mut file).expect("Failed to read line");
+            let file: &str = file.trim();
+
+            let hash = hash_file(file);
+            let hash: &str = &hash;
+
+            if !hash_mismatch_checker(hash, file) {
+                println!("Hash mismatch found \n");
+            } else {
+                println!("No mistmatch detected or file not found in baseline \n");
+            }
 
         } else if input == "a" {
             println!("\n Enter file path: ");
@@ -554,19 +569,6 @@ fn cli_menu() {
                     }
                 }
                 Err(err) => eprintln!("{}", err),
-            }
-
-        }  else if input == "h" {
-            println!("\n Enter file path: ");
-            let mut file = String::new();
-            io::stdin().read_line(&mut file).expect("Failed to read line");
-            let file: &str = file.trim();
-
-            let hash = hash_file(file);
-            let hash: &str = &hash;
-
-            if !hash_mismatch_checker(hash, file) {
-                println!("Hash mismatch found");
             }
 
         } else if input == "f" {
