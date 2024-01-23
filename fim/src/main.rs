@@ -80,8 +80,9 @@ fn gen_dirs_file() -> Result<String, io::Error> {
 
     let json_data = serde_json::to_string_pretty(&data).expect("Could not convert data to json");
 
-    if let Err(_) = fs::write(file, &json_data) {
+    if let Err(_) = fs::write(file, json_data) {
         fs::create_dir_all("./data").expect("Could not create /data directory");
+        let json_data = serde_json::to_string_pretty(&data).expect("Could not convert data to json");
         fs::write(file, json_data).expect("Could not write file");
     }
 
