@@ -16,3 +16,4 @@ Cargo.lock
 dirs.json
 baseline.json
 test.txt
+alerts.json
