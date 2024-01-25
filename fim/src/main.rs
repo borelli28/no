@@ -424,7 +424,7 @@ fn gen_baseline(file_path: &str) -> Result<String, io::Error> {
                         let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                         let the_path = PathBuf::from(line);
     
-                        if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if directory is traversable, it's found
+                        if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if traversable directory is found
                             for entry in entries {
                                 let entry = entry?;
                                 let path = entry.path();
