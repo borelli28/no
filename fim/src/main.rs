@@ -423,56 +423,58 @@ fn gen_baseline(file_path: &str) -> Result<String, io::Error> {
     
                         let line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
                         let the_path = PathBuf::from(line);
-    
-                        if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if traversable directory is found
-                            for entry in entries {
-                                let entry = entry?;
-                                let path = entry.path();
-                                if path.is_dir() {
-                                    continue
-                                } else {
-                                    let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
-                                    let hash = hash_file(&path);
-                                    let hash_str: &str = &hash;
-                                    let now = Utc::now();
-                                    let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-                                    if !hash_mismatch_checker(&hash_str, &path) {
-                                        let _ = gen_alert(&path, EventType::Modify);
-                                    }
+                        if the_path.exists(){
+                            if let Ok(entries) = std::fs::read_dir(the_path) { // Return true if traversable directory is found
+                                for entry in entries {
+                                    let entry = entry?;
+                                    let path = entry.path();
+                                    if path.is_dir() {
+                                        continue
+                                    } else {
+                                        let path = format!("{}", path.to_string_lossy()); // Convert PathBuff to str
+                                        let hash = hash_file(&path);
+                                        let hash_str: &str = &hash;
+                                        let now = Utc::now();
+                                        let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-                                    let _ = delete_hash(&path); // Delete previous object from file before writing the new object
-    
-                                    match write_hash(hash_str, &path, timestamp) {
-                                        Ok(_) => {
-                                            // println!("Write Ok");
-                                            continue
+                                        if !hash_mismatch_checker(&hash_str, &path) {
+                                            let _ = gen_alert(&path, EventType::Modify);
                                         }
-                                        Err(err) => {
-                                            eprintln!("Error: {}", err);
+
+                                        let _ = delete_hash(&path); // Delete previous object from file before writing the new object
+        
+                                        match write_hash(hash_str, &path, timestamp) {
+                                            Ok(_) => {
+                                                // println!("Write Ok");
+                                                continue
+                                            }
+                                            Err(err) => {
+                                                eprintln!("Error: {}", err);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        } else { // String is a file path instead of a directory path
-                            let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
-                            let hash = hash_file(&_line);
-                            let hash_str: &str = &hash;
-                            let now = Utc::now();
-                            let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
+                            } else { // String is a file path instead of a directory path
+                                let _line: String = i["file_path"].as_str().unwrap_or("default_path").to_string();
+                                let hash = hash_file(&_line);
+                                let hash_str: &str = &hash;
+                                let now = Utc::now();
+                                let timestamp: &str = &now.format("%Y-%m-%d %H:%M:%S").to_string();
 
-                            if !hash_mismatch_checker(&hash_str, &_line) {
-                                let _ = gen_alert(&_line, EventType::Modify);
-                            }
-    
-                            let _ = delete_hash(&_line); // Delete previous object from file before writing the new object
-    
-                            match write_hash(hash_str, &_line, timestamp) {
-                                Ok(_) => {
-                                    continue
+                                if !hash_mismatch_checker(&hash_str, &_line) {
+                                    let _ = gen_alert(&_line, EventType::Modify);
                                 }
-                                Err(err) => {
-                                    eprintln!("Error: {}", err);
+        
+                                let _ = delete_hash(&_line); // Delete previous object from file before writing the new object
+        
+                                match write_hash(hash_str, &_line, timestamp) {
+                                    Ok(_) => {
+                                        continue
+                                    }
+                                    Err(err) => {
+                                        eprintln!("Error: {}", err);
+                                    }
                                 }
                             }
                         }
