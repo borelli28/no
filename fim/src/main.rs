@@ -1,7 +1,8 @@
+mod hash_generator;
+
 use std::fs::{File, OpenOptions};
 use std::fs;
-use std::io::{self, BufReader, BufWriter, Read};
-use sha2::{Digest, Sha256};
+use std::io::{self, BufWriter, Read};
 use chrono::{Utc};
 use serde::{Serialize, Deserialize};
 use std::path::{PathBuf, Path};
@@ -9,6 +10,7 @@ use std::collections::HashSet;
 use serde_json::{json, Value};
 use notify::{Watcher, RecursiveMode, recommended_watcher, Event, ErrorKind};
 
+use crate::hash_generator::hash_file;
 
 #[derive(Serialize, Deserialize)]
 struct Hashes {
@@ -82,37 +84,6 @@ fn gen_dirs_file() -> Result<String, io::Error> {
     }
 
     Ok(String::from("Ok"))
-}
-
-fn calculate_sha256(file_path: &str) -> Result<String, io::Error> {
-    let file = File::open(file_path)?;
-    let mut reader = BufReader::new(file);
-    let mut hash = Sha256::new();
-    let mut buffer = [0; 1024];
-
-    loop {
-        let n = reader.read(&mut buffer)?;
-        if n == 0 {
-            break;
-        }
-        hash.update(&buffer[..n]);
-    }
-
-    let result = hash.finalize();
-    Ok(format!("{:x}", result))
-}
-
-fn hash_file(file_path: &str) -> String {
-    let result = calculate_sha256(file_path);
-
-    match result {
-        Ok(hash) => {
-            return hash
-        }
-        Err(err) => {
-            return err.to_string()
-        }
-    }
 }
 
 fn get_hash(file_path: &str) -> Result<String, std::io::Error> {
